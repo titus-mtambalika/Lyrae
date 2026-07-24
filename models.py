@@ -25,8 +25,7 @@ def track_loss(model,
 	return loss_report, np.linspace(0, epochs, i)
 
 def normalize(X, axis = 0):
-	reg = X - np.mean(X, axis = axis)
-	return reg / np.std(reg, axis = axis)
+	return (X - np.mean(X, axis = axis)) / np.std(X, axis = axis)
 
 def sigmoid(z):
 	return 1 / (1 + math.e ** -z)

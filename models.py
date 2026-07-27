@@ -9,12 +9,15 @@ def track_loss(model,
                i = 50, 
                learning_rate = 0.01,
                gradient = False,
-               relative = False,):
+               relative = False,
+               prediction_function = None):
+	if prediction_function is None:
+		prediction_function = model.predict
 	loss_report = np.array([])
 	# epochs for total iterations i for epochs per iterations
 	for _ in range(epochs // i):
 		model.fit(X, y, epochs = i, learning_rate = learning_rate)
-		loss = np.sum((y - model.predict(X)) ** 2) / y.shape[0]
+		loss = np.sum((y - prediction_function(X)) ** 2) / y.shape[0]
 		loss_report = np.append(loss_report, loss)
 	# to track approximate gradient of loss curve
 	if gradient:
@@ -22,7 +25,7 @@ def track_loss(model,
 	# make initial loss 1 to compare gradient change
 	if relative:
 		loss_report = loss_report / loss_report[0]
-	return loss_report, np.linspace(0, epochs, i)
+	return loss_report, np.linspace(0, epochs, len(loss_report))
 
 def normalize(X, axis = 0):
 	return (X - np.mean(X, axis = axis)) / np.std(X, axis = axis)
@@ -162,6 +165,23 @@ class GaussianNB:
 		"""Returns class predictions"""
 		proba = self.predict_proba(X)
 		return self.classes[np.argmax(proba, axis=1)]
+		
+class GaussianNB_predictor(GaussianNB):
+	def fit(self, X, y):
+		self.generate_classes(y)
+		super.fit(X, self.convert_to_classes(y))
+		
+	def generate_classes(self, y, n_classes = 10):
+		# define lower and upper limits for each class
+		self.classes = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
+	
+	def predict(X):
+		return self._log_likelihood_batch(X, )
+	def convert_to_classes(y):
+		y_to_class = y.copy()
+		for i in range(self.classes.shape - 1):
+			y_to_class = np.where((y_to_class < self.classes[i]) & (y_to_class < self.classes[i + 1]), self.classes[i] / 2 + self.classes[i + 1], y_to_class)
+		return y_to_class
 
 class DecisionTree:
 	def __init__(self, max_depth = 10, min_sample_split = 2):

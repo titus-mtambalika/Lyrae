@@ -167,14 +167,13 @@ class GaussianNB:
 		return self.classes[np.argmax(proba, axis=1)]
 		
 class GaussianNB_predictor(GaussianNB):
-	def fit(self, X, y):
-		self.generate_classes(y)
+	def fit(self, X, y, n_classes = 10):
+		# initalize upper and lower bounds for classes
+		self.class_bounds = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
+		# classes are averages of upper and lower class_bounds
+		self.classes = (self.class_bounds[:-1] + self.class_bounds[1:]) * 0.5
 		super.fit(X, self.convert_to_classes(y))
 		
-	def generate_classes(self, y, n_classes = 10):
-		# define lower and upper limits for each class
-		self.classes = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
-	
 	'''Return weighted sum of log_density'''
 	def predict_batch(X):
 		preictions = np.zeros(X.shape[0])
@@ -186,9 +185,10 @@ class GaussianNB_predictor(GaussianNB):
 		return preictions
 		
 	def convert_to_classes(y):
-		y_to_class = y.copy()
-		for i in range(self.classes.shape - 1):
-			y_to_class = np.where((y_to_class < self.classes[i]) & (y_to_class < self.classes[i + 1]), self.classes[i] / 2 + self.classes[i + 1], y_to_class)
+		# handle edgecases 
+		y_to_class = np.select([y < self.class_bounds[0], y > self.class_bounds[-1]], [self.classes[0], self.classes[-1]], default = y)
+		conditions = [(y_to_class > i) & (y_to_class < j) for i, j in zip(self.class_bounds[:-1], self.class_bounds[1:])]
+		y_to_class = np.select(conditions, self.classes, default = y_to_class)
 		return y_to_class
 
 class DecisionTree:

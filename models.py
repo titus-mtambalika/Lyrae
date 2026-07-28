@@ -175,8 +175,13 @@ class GaussianNB_predictor(GaussianNB):
 		# define lower and upper limits for each class
 		self.classes = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
 	
+	'''Return weighted sum of log_density'''
 	def predict(X):
-		return self._log_likelihood_batch(X, )
+		sample_prediction = np.zeros(len(self.shape))
+		for i, c in enumerate(self.classes):
+			sample_prediction[i] = self._log_likelihood_batch(X, c)
+		return sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
+		
 	def convert_to_classes(y):
 		y_to_class = y.copy()
 		for i in range(self.classes.shape - 1):

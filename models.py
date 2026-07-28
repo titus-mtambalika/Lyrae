@@ -178,7 +178,7 @@ class GaussianNB_predictor(GaussianNB):
 	def predict_batch(X):
 		preictions = np.zeros(X.shape[0])
 		for j, sample in enumerate(X):
-			sample_prediction = np.zeros(len(X.shape))
+			sample_prediction = np.zeros(len(self.classes))
 			for i, c in enumerate(self.classes):
 				sample_prediction[i] = self._log_likelihood_batch(sample, c)
 			preictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)

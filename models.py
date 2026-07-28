@@ -17,7 +17,7 @@ def track_loss(model,
 	# epochs for total iterations i for epochs per iterations
 	for _ in range(epochs // i):
 		model.fit(X, y, epochs = i, learning_rate = learning_rate)
-		loss = np.sum((y - prediction_function(X)) ** 2) / y.shape[0]
+		loss = np.mean((y - prediction_function(X)) ** 2)
 		loss_report = np.append(loss_report, loss)
 	# to track approximate gradient of loss curve
 	if gradient:
@@ -172,7 +172,7 @@ class GaussianNB_predictor(GaussianNB):
 		self.class_bounds = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
 		# classes are averages of upper and lower class_bounds
 		self.classes = (self.class_bounds[:-1] + self.class_bounds[1:]) * 0.5
-		super.fit(X, self.convert_to_classes(y))
+		super().fit(X, self.convert_to_classes(y))
 		
 	'''Return weighted sum of log_density'''
 	def predict_batch(X):
@@ -184,7 +184,7 @@ class GaussianNB_predictor(GaussianNB):
 			preictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
 		return preictions
 		
-	def convert_to_classes(y):
+	def convert_to_classes(self, y):
 		# handle edgecases 
 		y_to_class = np.select([y < self.class_bounds[0], y > self.class_bounds[-1]], [self.classes[0], self.classes[-1]], default = y)
 		conditions = [(y_to_class > i) & (y_to_class < j) for i, j in zip(self.class_bounds[:-1], self.class_bounds[1:])]

@@ -190,12 +190,3 @@ class GaussianNB_predictor(GaussianNB):
 		conditions = [(y_to_class > i) & (y_to_class < j) for i, j in zip(self.class_bounds[:-1], self.class_bounds[1:])]
 		y_to_class = np.select(conditions, self.classes, default = y_to_class)
 		return y_to_class
-
-class DecisionTree:
-	def __init__(self, max_depth = 10, min_sample_split = 2):
-		self.max_depth = max_depth
-		self.min_sample_split = min_sample_split
-		self.tree = None
-	
-	def fit(X, y):
-		pass

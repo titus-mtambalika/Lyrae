@@ -80,10 +80,12 @@ class Log_reg:
 			self.weights -= learning_rate * dl_dweights
 			self.bias -= learning_rate * dl_dbias
 	
+	"""Return prediction as probabilities"""
 	def predict_proba(self, X):
 		z = X @ self.weights + self.bias
 		return sigmoid(z) 
 	
+	"""Return prediction as 0 or 1"""
 	def predict(self, X, threshold=0.5):
 		proba = self.predict_proba(X)
 		return (proba >= threshold).astype(int)
@@ -93,16 +95,16 @@ class KNN:
 		self.X = X 
 		self.y = y
 		
-	def classify_one(self, sample, K = 7):
+	"""Return class with highest likelyhood of sample membership"""
+	def _classify_one(self, sample, K = 7):
 		distances = np.sum((sample - self.X) ** 2, axis = 1)
 		nearest_neighbours = self.y[np.argsort(distances)]
 		votes = nearest_neighbours[:K]
 		return Counter(votes).most_common()[0][0]
 		
 	def classify(self, samples, K = 7):
-		return [self.classify_one(sample) for sample in samples]
+		return [self._classify_one(sample) for sample in samples]
 		
-	
 	def predict_one(self, sample, K = 7):
 		distances = np.sum((sample - self.X) ** 2, axis = 1)
 		nearest_neighbours = self.y[np.argsort(distances)]
@@ -172,9 +174,9 @@ class GaussianNB_predictor(GaussianNB):
 		self.class_bounds = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
 		# classes are averages of upper and lower class_bounds
 		self.classes = (self.class_bounds[:-1] + self.class_bounds[1:]) * 0.5
-		super().fit(X, self.convert_to_classes(y))
+		super().fit(X, self._convert_to_classes(y))
 		
-	'''Return weighted sum of log_density'''
+	"""Return weighted sum of log_density"""
 	def predict_batch(X):
 		preictions = np.zeros(X.shape[0])
 		for j, sample in enumerate(X):
@@ -184,9 +186,47 @@ class GaussianNB_predictor(GaussianNB):
 			preictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
 		return preictions
 		
-	def convert_to_classes(self, y):
+	def _convert_to_classes(self, y):
 		# handle edgecases 
 		y_to_class = np.select([y < self.class_bounds[0], y > self.class_bounds[-1]], [self.classes[0], self.classes[-1]], default = y)
 		conditions = [(y_to_class > i) & (y_to_class < j) for i, j in zip(self.class_bounds[:-1], self.class_bounds[1:])]
 		y_to_class = np.select(conditions, self.classes, default = y_to_class)
 		return y_to_class
+
+class Node:
+	def __init__(self, 
+	feature = None, 
+	threshold = None, 
+	value = None,
+	left = None,
+	right = None):
+		self.feature = feature
+		self.threshold = threshold
+		self.value = value
+		self.left = left
+		self.right = right
+	
+	def is_leaf_node(self):
+		return self.value is not None
+
+class DecisionTreeClassifier:
+	def __init__(self,
+	n_features = 4,
+	max_depth = 100,
+	min_sample_split = 2):
+		self.n_features = n_features
+		self.max_depth = max_depth
+		self.min_sample_split = min_sample_split
+		self.root = None
+		
+	def fit(self, X, y):
+		# Check stopping criteria
+		samples, features = X.shape
+		_, class_count = np.unique(y, return_counts = True)
+		pass
+	
+	def predict(self):
+		pass
+	
+	def _gini_(self, x):
+		pass

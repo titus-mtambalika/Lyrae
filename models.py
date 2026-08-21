@@ -1,16 +1,15 @@
 import numpy as np
 import math
-from collections import Counter
 
 def track_loss(model,
-               X, 
-               y, 
-               epochs = 1000,
-               i = 50, 
-               learning_rate = 0.01,
-               gradient = False,
-               relative = False,
-               prediction_function = None):
+X, 
+y, 
+epochs = 5000,
+i = 50, 
+learning_rate = 0.01,
+gradient = False,
+relative = False,
+prediction_function = None):
 	if prediction_function is None:
 		prediction_function = model.predict
 	loss_report = np.array([])
@@ -29,12 +28,6 @@ def track_loss(model,
 
 def normalize(X, axis = 0):
 	return (X - np.mean(X, axis = axis)) / np.std(X, axis = axis)
-
-def sigmoid(z):
-	return 1 / (1 + math.e ** -z)
-	
-def asigmoid(z):
-	return -1 * np.log((1 / z) - 1)
 
 class Lin_reg:
 	def __init__(self):
@@ -70,7 +63,7 @@ class Log_reg:
 		
 		for epoch in range(epochs):
 			z = X @ self.weights + self.bias
-			y_prediction = sigmoid(z)
+			y_prediction = self._sigmoid(z)
 			
 			# Gradients (simplified form)
 			dl_dweights = X.T @ (y_prediction - y)
@@ -83,7 +76,7 @@ class Log_reg:
 	"""Return prediction as probabilities"""
 	def predict_proba(self, X):
 		z = X @ self.weights + self.bias
-		return sigmoid(z) 
+		return self._sigmoid(z) 
 	
 	"""Return prediction as 0 or 1"""
 	def predict(self, X, threshold=0.5):
@@ -99,8 +92,8 @@ class KNN:
 	def _classify_one(self, sample, K = 7):
 		distances = np.sum((sample - self.X) ** 2, axis = 1)
 		nearest_neighbours = self.y[np.argsort(distances)]
-		votes = nearest_neighbours[:K]
-		return Counter(votes).most_common()[0][0]
+		labels, votes = np.unique(nearest_neighbours[:K], return_counts = True)
+		return labels[np.argmax(votes)]
 		
 	def classify(self, samples, K = 7):
 		return [self._classify_one(sample) for sample in samples]
@@ -113,6 +106,9 @@ class KNN:
 		
 	def predict(self, samples, K = 7):
 		return [self.predict_one(sample) for sample in samples]
+		
+	def sigmoid(self, z):
+		return 1 / (1 + math.e ** -z)
 
 class GaussianNB:
 	def __init__(self, epsilon=1e-9):
@@ -167,7 +163,7 @@ class GaussianNB:
 		"""Returns class predictions"""
 		proba = self.predict_proba(X)
 		return self.classes[np.argmax(proba, axis=1)]
-		
+
 class GaussianNB_predictor(GaussianNB):
 	def fit(self, X, y, n_classes = 10):
 		# initalize upper and lower bounds for classes
@@ -205,13 +201,25 @@ class Node:
 		self.value = value
 		self.left = left
 		self.right = right
-	
+		
+	@property
 	def is_leaf_node(self):
 		return self.value is not None
+		
+	def __str__(self):
+		if not self.is_leaf_node:
+			return f"""|-{self.feature} > {self.threshold}?
+|
+|
+|----{self.left}
+|
+|----{self.right}"""
+		else:
+				return f"{self.threshold} ? ------> {self.value}"
 
 class DecisionTreeClassifier:
 	def __init__(self,
-	n_features = 4,
+	n_features = None,
 	max_depth = 100,
 	min_sample_split = 2):
 		self.n_features = n_features
@@ -220,13 +228,50 @@ class DecisionTreeClassifier:
 		self.root = None
 		
 	def fit(self, X, y):
-		# Check stopping criteria
-		samples, features = X.shape
-		_, class_count = np.unique(y, return_counts = True)
-		pass
+		_, features = X.shape
+		self.n_features = features if not self.n_features else min (features, self.n_features6)
+		self.root = self._grow_tree(X, y)
 	
 	def predict(self):
 		pass
 	
-	def _gini_(self, x):
-		pass
+	def _gini_impurity(self, y):
+		_, counts = np.unique(y)
+		return 1 - np.sum((counts / len(y)) ** 2)
+		
+	def _grow_tree(self, X, y, depth = 0):
+		n_samples, n_features = X.shape
+		n_labels = len(np.unique(y))
+		
+		# check stopping criteria
+		if (depth >= self.max_depth) or \
+		(n_features <= self.n_features) or \
+		(n_samples < self.min_sample_split):
+			labels, counts = np.unique(y, return_values = True)
+			return Node(value = labels[np.argmax(counts)])
+		# find best split 
+		best_threshold, best_feature_i = self.best_split(X, y)
+		# check child nodes
+		
+		
+	def _best_split(self, X, y):
+		best_feature_i = None
+		best_threshold = None
+		least_impurity = 1
+		
+		# loop through each feature
+		for feature_i in range(self.n_features):
+			features = np.unique(X[:, feature_i])
+			thresholds = np.argsort(features)
+			# use midpoints as thresholds
+			thresholds = (thresholds[:-1] + thresholds[1:]) * 0.5 
+		
+			for threshold in thresholds:
+				current_gini = self.gini(y)
+				if current_gini < least_impurity:
+					best_threshold, least_impurity, best_feature_i = threshold, current_gini, feature_i
+						
+			return best_threshold, best_feature_i
+			
+	def __str__(self):
+		return "Nodes"

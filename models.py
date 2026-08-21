@@ -207,15 +207,19 @@ class Node:
 		return self.value is not None
 		
 	def __str__(self):
+		return self._generate_tree_string()
+		
+	def _generate_tree_string(self, depth = 0, increment = 2):
 		if not self.is_leaf_node:
-			return f"""|-{self.feature} > {self.threshold}?
+			return f"""|-{"-" * depth}{self.feature} > {self.threshold}?
 |
 |
-|----{self.left}
+|--{self.left._generate_tree_string(depth + increment)}
 |
-|----{self.right}"""
+|--{self.right._generate_tree_string(depth + increment)}"""
 		else:
-				return f"{self.threshold} ? ------> {self.value}"
+			return f"{"-" * depth}{self.threshold} ? --> {self.value}"
+			
 
 class DecisionTreeClassifier:
 	def __init__(self,
@@ -232,8 +236,13 @@ class DecisionTreeClassifier:
 		self.n_features = features if not self.n_features else min (features, self.n_features6)
 		self.root = self._grow_tree(X, y)
 	
-	def predict(self):
-		pass
+	def predict(self, x):
+		current_node = self.tree
+		# traverse tree
+		while not current_node.is_leaf_node:
+			current_node = current_node.right if x > current_node.threshold else current_node.left
+		else:
+			return current_node.value
 	
 	def _gini_impurity(self, y):
 		_, counts = np.unique(y)
@@ -251,8 +260,9 @@ class DecisionTreeClassifier:
 			return Node(value = labels[np.argmax(counts)])
 		# find best split 
 		best_threshold, best_feature_i = self.best_split(X, y)
+		left_mask = X[:, best_feature_i] > best_threshold
+		right_mask = ~left_mask
 		# check child nodes
-		
 		
 	def _best_split(self, X, y):
 		best_feature_i = None
@@ -274,4 +284,4 @@ class DecisionTreeClassifier:
 			return best_threshold, best_feature_i
 			
 	def __str__(self):
-		return "Nodes"
+		return str(self.tree)

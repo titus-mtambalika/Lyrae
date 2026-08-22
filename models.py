@@ -210,16 +210,16 @@ class Node:
 		return self._generate_tree_string()
 	
 	"""Recursively print tree structure"""
-	def _generate_tree_string(self, depth = 0, increment = 2):
+	def _generate_tree_string(self, depth = 0, increment = 4):
 		if not self.is_leaf_node:
 			return f"""|-{"-" * depth}{self.feature} > {self.threshold}?
 |
 |
-|--{self.left._generate_tree_string(depth + increment) if self.left is not None else "Null"}
+|--{self.left._generate_tree_string(depth + increment) if self.left is not None else "Null left"}
 |
-|--{self.right._generate_tree_string(depth + increment) if self.right is not None else "Null"}"""
+|--{self.right._generate_tree_string(depth + increment) if self.right is not None else "Null right"}"""
 		else:
-			return f"{"-" * depth}{self.threshold} ? --> {self.value}"
+			return f"{"-" * depth}{self.feature if not self.feature is None else "feature"} > {self.threshold if self.threshold is not None else "threshold"} ? --> {self.value}"
 
 class DecisionTreeClassifier:
 	def __init__(self,
@@ -237,7 +237,7 @@ class DecisionTreeClassifier:
 		self.root = self._grow_tree(X, y)
 	
 	def _predict_one(self, x):
-		current_node = self.tree
+		current_node = self.root
 		# traverse tree
 		while not current_node.is_leaf_node:
 			current_node = current_node.right if x > current_node.threshold else current_node.left
@@ -269,13 +269,13 @@ class DecisionTreeClassifier:
 			labels, counts = np.unique(y, return_counts = True)
 			return Node(value = labels[np.argmax(counts)])
 			
-		left_mask = X[:, best_feature_i] > best_threshold
+		left_mask = X[:, best_feature_i] < best_threshold
 		right_mask = ~left_mask
 		
 		# create child nodes
 		node = Node(threshold = best_threshold, feature = best_feature_i)
-		node.left = Node(self._grow_tree(X[left_mask], y[left_mask], depth = depth + 1))
-		node.right = Node(self._grow_tree(X[right_mask], y[right_mask], depth = depth + 1))
+		node.left = self._grow_tree(X[left_mask], y[left_mask], depth = depth + 1)
+		node.right = self._grow_tree(X[right_mask], y[right_mask], depth = depth + 1)
 		
 		return node
 		
@@ -287,7 +287,7 @@ class DecisionTreeClassifier:
 		
 		for feature_i in range(self.n_features):
 			features = np.unique(X[:, feature_i])
-			thresholds = np.argsort(features)
+			thresholds = features[np.argsort(features)]
 			# use midpoints as thresholds
 			thresholds = (thresholds[:-1] + thresholds[1:]) * 0.5 
 
@@ -297,7 +297,7 @@ class DecisionTreeClassifier:
 				if current_gini < least_impurity:
 					least_impurity, best_threshold, best_feature_i = current_gini, threshold, feature_i
 			
-			return best_threshold, best_feature_i
+		return best_threshold, best_feature_i
 			
 	def __str__(self):
 		return str(self.root)

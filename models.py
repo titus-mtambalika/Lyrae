@@ -215,9 +215,9 @@ class Node:
 			return f"""|-{"-" * depth}{self.feature} > {self.threshold}?
 |
 |
-|--{self.left._generate_tree_string(depth + increment)}
+|--{self.left._generate_tree_string(depth + increment) if self.left is not None else "Null"}
 |
-|--{self.right._generate_tree_string(depth + increment)}"""
+|--{self.right._generate_tree_string(depth + increment) if self.right is not None else "Null"}"""
 		else:
 			return f"{"-" * depth}{self.threshold} ? --> {self.value}"
 
@@ -264,6 +264,11 @@ class DecisionTreeClassifier:
 			
 		# find best split 
 		best_threshold, best_feature_i = self._best_split(X, y)
+		# handle edgecases
+		if best_threshold is None or best_feature_i is None:
+			labels, counts = np.unique(y, return_counts = True)
+			return Node(value = labels[np.argmax(counts)])
+			
 		left_mask = X[:, best_feature_i] > best_threshold
 		right_mask = ~left_mask
 		
@@ -288,7 +293,7 @@ class DecisionTreeClassifier:
 
 			# loop through each threshold
 			for threshold in thresholds:
-				current_gini = self._gini_impurity(y[features > threshold])
+				current_gini = self._gini_impurity(y[X[:, feature_i] > threshold])
 				if current_gini < least_impurity:
 					least_impurity, best_threshold, best_feature_i = current_gini, threshold, feature_i
 			

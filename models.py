@@ -225,7 +225,7 @@ class DecisionTreeClassifier:
 	def __init__(self,
 	n_features = None,
 	max_depth = 100,
-	min_sample_split = 2):
+	min_sample_split = 6):
 		self.n_features = n_features
 		self.max_depth = max_depth
 		self.min_sample_split = min_sample_split
@@ -233,10 +233,10 @@ class DecisionTreeClassifier:
 		
 	def fit(self, X, y):
 		_, features = X.shape
-		self.n_features = features if not self.n_features else min (features, self.n_features6)
+		self.n_features = features if not self.n_features else min (features, self.n_features)
 		self.root = self._grow_tree(X, y)
 	
-	def predict(self, x):
+	def _predict_one(self, x):
 		current_node = self.tree
 		# traverse tree
 		while not current_node.is_leaf_node:
@@ -244,6 +244,9 @@ class DecisionTreeClassifier:
 		else:
 			return current_node.value
 	
+	def predict(self, X):
+		return np.array([self._predict_one(x) for x in X])
+		
 	def _gini_impurity(self, y):
 		_, counts = np.unique(y, return_counts = True)
 		return 1 - np.sum((counts / len(y)) ** 2)
@@ -254,13 +257,13 @@ class DecisionTreeClassifier:
 		
 		# check stopping criteria
 		if (depth >= self.max_depth) or \
-		(n_features <= self.n_features) or \
+		(n_features < self.n_features) or \
 		(n_samples < self.min_sample_split):
 			labels, counts = np.unique(y, return_counts = True)
 			return Node(value = labels[np.argmax(counts)])
 			
 		# find best split 
-		best_threshold, best_feature_i = self.best_split(X, y)
+		best_threshold, best_feature_i = self._best_split(X, y)
 		left_mask = X[:, best_feature_i] > best_threshold
 		right_mask = ~left_mask
 		
@@ -272,23 +275,23 @@ class DecisionTreeClassifier:
 		return node
 		
 	def _best_split(self, X, y):
+		# loop through each feature
 		best_feature_i = None
 		best_threshold = None
 		least_impurity = 1
 		
-		# loop through each feature
 		for feature_i in range(self.n_features):
 			features = np.unique(X[:, feature_i])
 			thresholds = np.argsort(features)
 			# use midpoints as thresholds
 			thresholds = (thresholds[:-1] + thresholds[1:]) * 0.5 
-			
+
 			# loop through each threshold
 			for threshold in thresholds:
 				current_gini = self._gini_impurity(y[features > threshold])
 				if current_gini < least_impurity:
-					least_impurity, best_threshold, best_feature_i = current_gini, threshold, feature
-	
+					least_impurity, best_threshold, best_feature_i = current_gini, threshold, feature_i
+			
 			return best_threshold, best_feature_i
 			
 	def __str__(self):

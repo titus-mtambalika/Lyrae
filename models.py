@@ -208,7 +208,8 @@ class Node:
 		
 	def __str__(self):
 		return self._generate_tree_string()
-		
+	
+	"""Recursively print tree structure"""
 	def _generate_tree_string(self, depth = 0, increment = 2):
 		if not self.is_leaf_node:
 			return f"""|-{"-" * depth}{self.feature} > {self.threshold}?
@@ -219,7 +220,6 @@ class Node:
 |--{self.right._generate_tree_string(depth + increment)}"""
 		else:
 			return f"{"-" * depth}{self.threshold} ? --> {self.value}"
-			
 
 class DecisionTreeClassifier:
 	def __init__(self,
@@ -258,11 +258,18 @@ class DecisionTreeClassifier:
 		(n_samples < self.min_sample_split):
 			labels, counts = np.unique(y, return_values = True)
 			return Node(value = labels[np.argmax(counts)])
+			
 		# find best split 
 		best_threshold, best_feature_i = self.best_split(X, y)
 		left_mask = X[:, best_feature_i] > best_threshold
 		right_mask = ~left_mask
-		# check child nodes
+		
+		# create child nodes
+		node = Node(threshold = best_threshold, feature = best_feature_i)
+		node.left = Node(self._grow_tree(X[left_mask], y[left_mask], depth = depth + 1))
+		node.right = Node(self._grow_tree(X[right_mask], y[right_mask], depth = depth + 1))
+		
+		return node
 		
 	def _best_split(self, X, y):
 		best_feature_i = None
@@ -275,13 +282,14 @@ class DecisionTreeClassifier:
 			thresholds = np.argsort(features)
 			# use midpoints as thresholds
 			thresholds = (thresholds[:-1] + thresholds[1:]) * 0.5 
-		
+			
+			# loop through each threshold
 			for threshold in thresholds:
-				current_gini = self.gini(y)
+				current_gini = self._gini_impurity(y[features > threshold])
 				if current_gini < least_impurity:
-					best_threshold, least_impurity, best_feature_i = threshold, current_gini, feature_i
-						
+					least_impurity, best_threshold, best_feature_i = current_gini, threshold, feature
+	
 			return best_threshold, best_feature_i
 			
 	def __str__(self):
-		return str(self.tree)
+		return str(self.root)

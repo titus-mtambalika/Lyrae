@@ -245,7 +245,7 @@ class DecisionTreeClassifier:
 			return current_node.value
 	
 	def _gini_impurity(self, y):
-		_, counts = np.unique(y)
+		_, counts = np.unique(y, return_counts = True)
 		return 1 - np.sum((counts / len(y)) ** 2)
 		
 	def _grow_tree(self, X, y, depth = 0):
@@ -256,7 +256,7 @@ class DecisionTreeClassifier:
 		if (depth >= self.max_depth) or \
 		(n_features <= self.n_features) or \
 		(n_samples < self.min_sample_split):
-			labels, counts = np.unique(y, return_values = True)
+			labels, counts = np.unique(y, return_counts = True)
 			return Node(value = labels[np.argmax(counts)])
 			
 		# find best split 

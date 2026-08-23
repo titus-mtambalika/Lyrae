@@ -240,7 +240,7 @@ class DecisionTreeClassifier:
 		current_node = self.root
 		# traverse tree
 		while not current_node.is_leaf_node:
-			current_node = current_node.right if x > current_node.threshold else current_node.left
+			current_node = current_node.right if x[current_node.feature] > current_node.threshold else current_node.left
 		else:
 			return current_node.value
 	

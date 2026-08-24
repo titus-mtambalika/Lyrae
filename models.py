@@ -204,22 +204,23 @@ class Node:
 		
 	@property
 	def is_leaf_node(self):
-		return self.value is not None
+		return not (self.value is None)
 		
 	def __str__(self):
 		return self._generate_tree_string()
 	
 	"""Recursively print tree structure"""
-	def _generate_tree_string(self, depth = 0, increment = 4):
+	def _generate_tree_string(self, depth = 0, increment = 1):
 		if not self.is_leaf_node:
-			return f"""|-{"-" * depth}{self.feature} > {self.threshold}?
+			indent = "    " * depth
+			return f"""{"    " * depth}|--- {self.feature} > {self.threshold}?
 |
 |
-|--{self.left._generate_tree_string(depth + increment) if self.left is not None else "Null left"}
+|- {self.left._generate_tree_string(depth + increment) if not (self.left is None) else "Null left"}
 |
-|--{self.right._generate_tree_string(depth + increment) if self.right is not None else "Null right"}"""
+|- {self.right._generate_tree_string(depth + increment) if not (self.right is None) else "Null right"}"""
 		else:
-			return f"{"-" * depth}{self.feature if not self.feature is None else "feature"} > {self.threshold if self.threshold is not None else "threshold"} ? --> {self.value}"
+			return f"{"    " * depth} --- {self.feature if not (self.feature is not None) else "feature"} > {self.threshold if self.threshold is not None else "threshold"} ? --> {self.value}"
 
 class DecisionTreeClassifier:
 	def __init__(self,

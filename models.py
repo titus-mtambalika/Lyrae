@@ -285,7 +285,7 @@ class DecisionTreeClassifier:
 		best_threshold = None
 		least_impurity = 1
 		
-		for feature_i in range(self.n_features):
+		for feature_i in np.random.choice(np.arange(X.shape[1]), self.n_features, replace = False): # choose random values for indices
 			features = np.unique(X[:, feature_i])
 			thresholds = features[np.argsort(features)]
 			# use midpoints as thresholds

@@ -258,7 +258,7 @@ class DecisionTreeClassifier:
 		
 		# check stopping criteria
 		if (depth >= self.max_depth) or \
-		(n_features < self.n_features) or \
+		(n_labels == 1) or \
 		(n_samples < self.min_sample_split):
 			labels, counts = np.unique(y, return_counts = True)
 			return Node(value = labels[np.argmax(counts)])

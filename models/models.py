@@ -225,8 +225,8 @@ class Node:
 class DecisionTreeClassifier:
 	def __init__(self,
 	n_features = None,
-	max_depth = 100,
-	min_sample_split = 6):
+	max_depth = 10,
+	min_sample_split = 7):
 		self.n_features = n_features
 		self.max_depth = max_depth
 		self.min_sample_split = min_sample_split

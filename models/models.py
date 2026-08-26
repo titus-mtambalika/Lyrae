@@ -105,7 +105,7 @@ class KNN:
 		return np.mean(votes)
 		
 	def predict(self, samples, K = 7):
-		return [self.predict_one(sample) for sample in samples]
+		return np.array([self.predict_one(sample) for sample in samples])
 		
 	def sigmoid(self, z):
 		return 1 / (1 + math.e ** -z)
@@ -173,14 +173,14 @@ class GaussianNB_predictor(GaussianNB):
 		super().fit(X, self._convert_to_classes(y))
 		
 	"""Return weighted sum of log_density"""
-	def predict_batch(X):
-		preictions = np.zeros(X.shape[0])
+	def predict(X):
+		predictions = np.zeros(X.shape[0])
 		for j, sample in enumerate(X):
 			sample_prediction = np.zeros(len(self.classes))
 			for i, c in enumerate(self.classes):
 				sample_prediction[i] = self._log_likelihood_batch(sample, c)
-			preictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
-		return preictions
+			predictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
+		return predictions
 		
 	def _convert_to_classes(self, y):
 		# handle edgecases 

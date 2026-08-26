@@ -1,5 +1,5 @@
 import numpy as np
-import models as md
+from models import models as md
 
 class RandomForest:
 	def __init__(self, 
@@ -15,8 +15,8 @@ class RandomForest:
 	
 	def fit(self, X, y, batch_size = None):
 		n_samples, n_features = X.shape
-		batch_size = n_samples // self.n_trees if not batch_size
-		self.n_features = n_features if not self.n_features
+		batch_size = n_samples // self.n_trees if not batch_size else batch_size
+		self.n_features = n_features if not self.n_features else self.n_features
 		
 		# initialize trees 
 		self.trees = [md.DecisionTreeClassifier(n_features = self.n_features, max_depth = self.max_depth, min_sample_split = self.min_sample_split) for _ in range(self.n_trees)]
@@ -29,8 +29,11 @@ class RandomForest:
 	def predict(self, X):
 		predictions = np.array([])
 		# loop through each sample
-		for i, x in enumerate(X):
-			# loop through each tree
-			sample_prediction = np.array([tree.predict(x) for tree, tree_idx in zip(self.trees, range(self.n_trees))])
+		for x in X:
+			sample_prediction = np.array([tree._predict_one(x) for tree in self.trees])
 			labels, counts = np.unique(sample_prediction, return_counts = True)
-			predictions[i] = labels[np.argmax(counts)]
+			predictions = np.append(predictions, labels[np.argmax(counts)])
+		return predictions
+
+	def __str__(self):
+		return "\n".join([str(tree) for tree in self.trees])

@@ -30,7 +30,7 @@ class RandomForest:
 		predictions = np.array([])
 		# loop through each sample
 		for x in X:
-			sample_prediction = np.array([tree._predict_one(x) for tree in self.trees])
+			sample_prediction = np.array([tree.predict(x) for tree in self.trees])
 			labels, counts = np.unique(sample_prediction, return_counts = True)
 			predictions = np.append(predictions, labels[np.argmax(counts)])
 		return predictions

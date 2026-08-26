@@ -246,6 +246,8 @@ class DecisionTreeClassifier:
 			return current_node.value
 	
 	def predict(self, X):
+		if X.ndim == 1:
+			return self._predict_one(X)
 		return np.array([self._predict_one(x) for x in X])
 		
 	def _gini_impurity(self, y):

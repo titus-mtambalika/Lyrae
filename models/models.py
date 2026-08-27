@@ -144,7 +144,7 @@ class GaussianNB:
 		# Shape: (m,)
 		log_density = -0.5 * self._d * np.log(2 * np.pi) - \
 					 0.5 * np.sum(self._log_variances[c]) - \
-					 0.5 * np.sum((X - self.means[c])**2 / self.variances[c], axis=1)
+					 0.5 * np.sum((X - self.means[c])**2 / self.variances[c], axis=0)
 		return self._log_priors[c] + log_density
 	
 	def predict_proba(self, X):
@@ -172,15 +172,19 @@ class GaussianNB_predictor(GaussianNB):
 		self.classes = (self.class_bounds[:-1] + self.class_bounds[1:]) * 0.5
 		
 		super().fit(X, self._convert_to_classes(y))
+		# collect class frequencys
+		self.class_freqs = (np.unique(self._convert_to_classes(y), return_counts = True)[1]).astype(np.float64)
+		self.class_freqs /= np.sum(self.class_freqs)
 		
 	"""Return weighted sum of log_density"""
 	def predict(self, X):
-		predictions = np.zeros(X.shape[0])
-		for j, sample in enumerate(X):
+		predictions = np.array([])
+		for sample in X:
 			sample_prediction = np.zeros(len(self.classes))
 			for i, c in enumerate(self.classes):
 				sample_prediction[i] = self._log_likelihood_batch(sample, c)
-			predictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
+			sample_prediction *= self.class_freqs
+			predictions = np.append(predictions, sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction))
 		
 		return predictions
 		

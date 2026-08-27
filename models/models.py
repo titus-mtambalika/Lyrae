@@ -165,30 +165,35 @@ class GaussianNB:
 		return self.classes[np.argmax(proba, axis=1)]
 
 class GaussianNB_predictor(GaussianNB):
-	def fit(self, X, y, n_classes = 10):
+	def fit(self, X, y, n_classes = 11):
 		# initalize upper and lower bounds for classes
 		self.class_bounds = np.linspace(y[np.argmin(y)], y[np.argmax(y)], n_classes + 1)
 		# classes are averages of upper and lower class_bounds
 		self.classes = (self.class_bounds[:-1] + self.class_bounds[1:]) * 0.5
+		
 		super().fit(X, self._convert_to_classes(y))
 		
 	"""Return weighted sum of log_density"""
-	def predict(X):
+	def predict(self, X):
 		predictions = np.zeros(X.shape[0])
 		for j, sample in enumerate(X):
 			sample_prediction = np.zeros(len(self.classes))
 			for i, c in enumerate(self.classes):
 				sample_prediction[i] = self._log_likelihood_batch(sample, c)
 			predictions[j] = sample_prediction[np.newaxis, :] @ self.classes[:, np.newaxis] / np.sum(sample_prediction)
+		
 		return predictions
 		
 	def _convert_to_classes(self, y):
 		# handle edgecases 
-		y_to_class = np.select([y < self.class_bounds[0], y > self.class_bounds[-1]], [self.classes[0], self.classes[-1]], default = y)
-		conditions = [(y_to_class > i) & (y_to_class < j) for i, j in zip(self.class_bounds[:-1], self.class_bounds[1:])]
+		y_to_class = y.copy()
+		y_to_class = np.select([y_to_class < self.class_bounds[0], y > self.class_bounds[-1]], [self.classes[0], self.classes[-1]], default = y_to_class)
+		
+		conditions = np.array([((y_to_class >= self.class_bounds[i]) & (y_to_class <= self.class_bounds[i + 1])) for i in range(len(self.classes))])
 		y_to_class = np.select(conditions, self.classes, default = y_to_class)
+		
+		
 		return y_to_class
-
 class Node:
 	def __init__(self, 
 	feature = None, 

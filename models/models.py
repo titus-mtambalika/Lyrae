@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 def track_loss(model,
 X, 
@@ -29,6 +28,12 @@ prediction_function = None):
 def normalize(X, axis = 0):
 	return (X - np.mean(X, axis = axis)) / np.std(X, axis = axis)
 
+def sigmoid(z, deriv = False):
+	if deriv:
+		s = sigmoid(z, deriv = False)
+		return s * (1 - s)
+	return 1 / (1 + np.exp(-z))
+		
 class Lin_reg:
 	def __init__(self):
 		self.weights = None
@@ -63,7 +68,7 @@ class Log_reg:
 		
 		for epoch in range(epochs):
 			z = X @ self.weights + self.bias
-			y_prediction = self._sigmoid(z)
+			y_prediction = sigmoid(z)
 			
 			# Gradients (simplified form)
 			dl_dweights = X.T @ (y_prediction - y)
@@ -76,7 +81,7 @@ class Log_reg:
 	"""Return prediction as probabilities"""
 	def predict_proba(self, X):
 		z = X @ self.weights + self.bias
-		return self._sigmoid(z) 
+		return sigmoid(z) 
 	
 	"""Return prediction as 0 or 1"""
 	def predict(self, X, threshold=0.5):
@@ -107,8 +112,6 @@ class KNN:
 	def predict(self, samples, K = 7):
 		return np.array([self.predict_one(sample) for sample in samples])
 		
-	def sigmoid(self, z):
-		return 1 / (1 + math.e ** -z)
 
 class GaussianNB:
 	def __init__(self, epsilon=1e-9):
@@ -198,6 +201,7 @@ class GaussianNB_predictor(GaussianNB):
 		
 		
 		return y_to_class
+
 class Node:
 	def __init__(self, 
 	feature = None, 

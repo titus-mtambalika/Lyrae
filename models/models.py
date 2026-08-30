@@ -33,7 +33,10 @@ def sigmoid(z, deriv = False):
 		s = sigmoid(z, deriv = False)
 		return s * (1 - s)
 	return 1 / (1 + np.exp(-z))
-		
+
+def relu(s):
+	return np.where(s < 0, 0, s)
+	
 class Lin_reg:
 	def __init__(self):
 		self.weights = None

@@ -46,7 +46,7 @@ class Lin_reg:
 		n_samples, n_features = X.shape
 		self.loss_report = np.array([])
 		if self.weights is None:
-			self.weights = np.zeros((n_features, 1))
+			self.weights = np.random.random((n_features, 1))
 		if self.bias is None:
 			self.bias = 0 
 			
@@ -66,7 +66,7 @@ class Log_reg:
 		
 	def fit(self, X, y, epochs = 50000, learning_rate=0.01):
 		n_samples, n_features = X.shape
-		self.weights = np.zeros((n_features, 1))
+		self.weights = np.random.random((n_features, 1))
 		self.bias = 0
 		
 		for epoch in range(epochs):

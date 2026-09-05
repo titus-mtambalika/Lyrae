@@ -34,9 +34,16 @@ def sigmoid(z, deriv = False):
 		return s * (1 - s)
 	return 1 / (1 + np.exp(-z))
 
-def relu(s):
+def relu(s, deriv = False):
+	if deriv:
+		return (s > 0).astype(np.int)
 	return np.where(s < 0, 0, s)
+
+def softmax(y):
+	y_1 = np.exp(y)
+	return y_1 / np.sum(y_1, axis = 0)
 	
+
 class Lin_reg:
 	def __init__(self):
 		self.weights = None

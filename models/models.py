@@ -39,7 +39,7 @@ def relu(s, deriv = False):
 		return (s > 0).astype(np.int)
 	return np.where(s < 0, 0, s)
 
-def softmax(y):
+def softmax(y, deriv = False):
 	y_1 = np.exp(y)
 	return y_1 / np.sum(y_1, axis = 0)
 	

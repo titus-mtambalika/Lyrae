@@ -9,16 +9,18 @@ class Layer:
 		self.activation = activation
 		self.bias = bias
 		self.weights = weights
-		# set last prediction for back propagation 
-		self._last_prediction = None
-	def feed(self, X):
-		z = X @ self.weights + self.bias
+		"""Cache for backprop"""
+		self.a = None
+		self.z = None
+		self.a_1 = None
+	def feed(self, a_1):
+		self.a_1 = a_1 # for backprop
+		self.z = a_1 @ self.weights + self.bias
 		if not self.activation:
-			self._last_prediction = z
-			return z
-		s = self.activation(z)
-		self._last_prediction = s
-		return s
+			self.a = self.z
+			return self.z
+		self.a = self.activation(self.z)
+		return self.a
 
 class NeuralNetwork:
 	def __init__(self,
@@ -36,8 +38,10 @@ class NeuralNetwork:
 	hidden_layer_size = 16, 
 	n_hdn_layers = 1,
 	output_layer_size = None,
-	learning_rate = 0.001):
+	learning_rate = 0.001,
+	epochs = 3000):
 		
+		self.learning_rate = learning_rate
 		n_samples, n_features = X.shape
 		
 		if not output_layer_size:
@@ -55,11 +59,18 @@ class NeuralNetwork:
 		
 		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
 		
-		y_prediction = self.predict(X)
+		for i in range(epochs):
+			a = self._feed_forward(X)
+			loss = (y - a) ** 2
+			dL_da = 2 * (a - y)
+			
+			if i % 100:
+				print(np.sum(loss))
+			
+			self._backprop(delta = dL_da)
 		
-		print(y_prediction.shape)
 	"Recursively feed forward"
-	def predict(self, X, layer_idx = 0):
+	def _feed_forward(self, X, layer_idx = 0):
 		layer = self.layers[layer_idx]
 		layer_prediction = layer.feed(X)
 		
@@ -67,7 +78,7 @@ class NeuralNetwork:
 		if layer_idx > (len(self.layers) - 2):
 			return layer_prediction
 			
-		return self.predict(layer_prediction, layer_idx = layer_idx + 1)
+		return self._feed_forward(layer_prediction, layer_idx = layer_idx + 1)
 	
 	"""Initialize hidden layers"""
 	def _initialize_hidden_layers(self, hidden_layer_size, n_hdn_layers, activation_func = md.sigmoid):
@@ -88,7 +99,32 @@ class NeuralNetwork:
 				)
 
 		self._output_layer = Layer(
-					activation = md.softmax,
+					activation = md.sigmoid,
 					weights = np.random.random((hidden_layer_size, output_layer_size)),
 					bias = np.random.random((output_layer_size,))
 					)
+	
+	def _backprop(self, delta, layer_idx = None):
+		layer_idx = len(self.layers) - 1 if (layer_idx is None) else layer_idx
+		# base case 
+		if layer_idx < 0:
+			return
+		layer = self.layers[layer_idx]
+		
+		#gradients
+		da_dz = layer.activation(layer.z, deriv = True) if layer.activation else 1
+		dz_dw = layer.a_1.T
+		
+		local_delta = da_dz * delta
+		
+		dL_dw = dz_dw @ local_delta
+		da_da1 = local_delta @ layer.weights.T
+		# update 
+		n = 1  / layer.a_1.shape[0]
+		layer.weights -= n * self.learning_rate * dL_dw
+		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
+		
+		self._backprop(delta = da_da1, layer_idx = layer_idx - 1)
+		
+	def predict(self, X):
+		return np.round(self._feed_forward(X))

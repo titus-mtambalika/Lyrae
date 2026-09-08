@@ -39,7 +39,8 @@ class NeuralNetwork:
 	n_hdn_layers = 1,
 	output_layer_size = None,
 	learning_rate = 0.001,
-	epochs = 3000):
+	epochs = 3000,
+	batch_size = None):
 		
 		self.learning_rate = learning_rate
 		n_samples, n_features = X.shape
@@ -56,18 +57,9 @@ class NeuralNetwork:
 			hidden_layer_size = hidden_layer_size,
 			n_hdn_layers = n_hdn_layers
 		)
-		
+
 		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
-		
-		for i in range(epochs):
-			a = self._feed_forward(X)
-			loss = (y - a) ** 2
-			dL_da = 2 * (a - y)
-			
-			if i % 100:
-				print(np.sum(loss))
-			
-			self._backprop(delta = dL_da)
+		self._mini_batch(X, y, epochs, batch_size)
 		
 	"Recursively feed forward"
 	def _feed_forward(self, X, layer_idx = 0):
@@ -128,3 +120,21 @@ class NeuralNetwork:
 		
 	def predict(self, X):
 		return np.round(self._feed_forward(X))
+		
+	def _mini_batch(self, X, y, epochs, batch_size = 128):
+		n_samples, _ = X.shape
+		batch_idxs = range(0, n_samples, batch_size)
+		print(batch_idxs)
+		
+		for i in range(epochs):
+			for idx in range(len(batch_idxs) - 1):
+				X_batch = X[batch_idxs[idx]:batch_idxs[idx + 1]]
+				y_batch = y[batch_idxs[idx]:batch_idxs[idx + 1]]
+				a = self._feed_forward(X_batch)
+				loss = (y_batch - a) ** 2
+				dL_da = 2 * (a - y_batch)
+				
+			if i % 100:
+				print(np.sum(loss))
+				
+			self._backprop(delta = dL_da)

@@ -123,7 +123,7 @@ class NeuralNetwork:
 		
 	def _mini_batch(self, X, y, epochs, batch_size = 128):
 		n_samples, _ = X.shape
-		batch_idxs = range(0, n_samples, batch_size)
+		batch_idxs = [*range(0, n_samples, batch_size), n_samples]
 		print(batch_idxs)
 		
 		for i in range(epochs):
@@ -133,8 +133,7 @@ class NeuralNetwork:
 				a = self._feed_forward(X_batch)
 				loss = (y_batch - a) ** 2
 				dL_da = 2 * (a - y_batch)
-				
+				self._backprop(delta = dL_da)
 			if i % 100:
 				print(np.sum(loss))
 				
-			self._backprop(delta = dL_da)

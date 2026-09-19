@@ -19,7 +19,7 @@ class RandomForest:
 		self.n_features = n_features if not self.n_features else self.n_features
 		
 		# initialize trees 
-		self.trees = [md.DecisionTreeClassifier(n_features = self.n_features, max_depth = self.max_depth, min_sample_split = self.min_sample_split) for _ in range(self.n_trees)]
+		self.trees = [DecisionTreeClassifier(n_features = self.n_features, max_depth = self.max_depth, min_sample_split = self.min_sample_split) for _ in range(self.n_trees)]
 		"""Fit each tree"""
 		for tree in self.trees:
 			# select random datasets

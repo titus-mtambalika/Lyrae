@@ -36,7 +36,7 @@ def sigmoid(z, deriv = False):
 
 def relu(s, deriv = False):
 	if deriv:
-		return (s > 0).astype(np.int)
+		return (s > 0).astype(np.int64)
 	return np.where(s < 0, 0, s)
 
 def softmax(y, deriv = False):

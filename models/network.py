@@ -10,8 +10,8 @@ class Layer:
 		self.bias = bias
 		self.weights = weights
 		"""Cache for backprop"""
-		self.a = None
-		self.z = None
+		self.a = None # a = activation(z)
+		self.z = None # z = Xw + b
 		self.a_1 = None
 	def feed(self, a_1):
 		self.a_1 = a_1 # for backprop
@@ -51,7 +51,7 @@ class NeuralNetwork:
 		"""Declare input, output and hidden layers"""
 		# input and output
 		self._initialize_layers(n_features, hidden_layer_size, output_layer_size)
-		# hidden layere
+		# hidden layers
 		self._initialize_hidden_layers(
 			activation_func = self.activation_func,
 			hidden_layer_size = hidden_layer_size,
@@ -124,9 +124,9 @@ class NeuralNetwork:
 	def _mini_batch(self, X, y, epochs, batch_size = 128):
 		n_samples, _ = X.shape
 		batch_idxs = [*range(0, n_samples, batch_size), n_samples]
-		print(batch_idxs)
 		
-		for i in range(epochs):
+		
+		for epoch in range(epochs):
 			for idx in range(len(batch_idxs) - 1):
 				X_batch = X[batch_idxs[idx]:batch_idxs[idx + 1]]
 				y_batch = y[batch_idxs[idx]:batch_idxs[idx + 1]]
@@ -134,6 +134,44 @@ class NeuralNetwork:
 				loss = (y_batch - a) ** 2
 				dL_da = 2 * (a - y_batch)
 				self._backprop(delta = dL_da)
-			if i % 100:
-				print(np.sum(loss))
+			if epoch % 20 == 0:
+				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
+				print(f"Loss = {np.sum(loss):.2f}")
+				print(f"Accuracy = {(accuracy * 100):.2f}%")
 				
+		
+class CNN:
+	def __init__(self,
+	k = None,
+	):
+		self.kernel = None 
+		self.X = np.array([]) # for for loss function 
+		self.k = k # kernel height or width 
+		self.bias = None 
+		
+	def fit(self, X, y):
+		height, width = X.shape
+		
+		if self.k is None:
+			self.k = height // 2
+			
+		self.kernel = np.random.random((self.k, self.k))
+		
+	def cross_correlation(self, X, valid = True):
+		height, width = X.shape
+		
+		if valid: # valid cross_correlation
+			image = X
+		else: # full cross_correlation
+			image = np.zeros((height + 2 * self.k - 2, width + 2 * self.k - 2))
+			image[self.k - 1: self.k - 1 + height, self.k - 1:self.k -1 + width] = X
+			height, width = image.shape
+			
+		
+		for i in range(height - self.k + 1):
+			for j in range(width - self.k + 1):
+				a = image[i:i + self.k, j:j + self.k].flatten()
+				self.X = np.append(self.X, a)
+		self.X = self.X.reshape((-1, self.k ** 2))
+		
+		return self.X @ self.kernel.flatten()[:, np.newaxis] # + self.bias

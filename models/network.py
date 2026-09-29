@@ -31,12 +31,11 @@ class NeuralNetwork:
 		self._hidden_layers = []
 		self.learning_rate = None
 		self.activation_func = activation_func
+		self.hidden_layer_sizes = np.array([])
 		
 	def fit(self, 
 	X, 
-	y, 
-	hidden_layer_size = 16, 
-	n_hdn_layers = 1,
+	y,  
 	output_layer_size = None,
 	learning_rate = 0.001,
 	epochs = 3000,
@@ -45,17 +44,18 @@ class NeuralNetwork:
 		self.learning_rate = learning_rate
 		n_samples, n_features = X.shape
 		
+		
 		if not output_layer_size:
 			output_layer_size = y.shape[1]
 		
+		self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
+		print(self.hidden_layer_sizes)
 		"""Declare input, output and hidden layers"""
 		# input and output
-		self._initialize_layers(n_features, hidden_layer_size, output_layer_size)
+		self._initialize_io_layers(n_features, output_layer_size)
 		# hidden layers
 		self._initialize_hidden_layers(
 			activation_func = self.activation_func,
-			hidden_layer_size = hidden_layer_size,
-			n_hdn_layers = n_hdn_layers
 		)
 
 		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
@@ -73,26 +73,27 @@ class NeuralNetwork:
 		return self._feed_forward(layer_prediction, layer_idx = layer_idx + 1)
 	
 	"""Initialize hidden layers"""
-	def _initialize_hidden_layers(self, hidden_layer_size, n_hdn_layers, activation_func = md.sigmoid):
-		for _ in range(n_hdn_layers):
+	def _initialize_hidden_layers(self, activation_func = md.sigmoid):
+		for i in range(len(self.hidden_layer_sizes) - 1):
 			self._hidden_layers.append(
 				Layer(
 					activation = activation_func,
-					weights = np.random.random((hidden_layer_size, hidden_layer_size)),
-					bias = np.random.random((hidden_layer_size,))
+					weights = np.random.random(self.hidden_layer_sizes[i:i + 2]),
+					bias = np.random.random((self.hidden_layer_sizes[i + 1],))
 					)
 				)
-			
-	def _initialize_layers(self, n_features, hidden_layer_size, output_layer_size):
+				
+	"""Initialize input and output layers"""
+	def _initialize_io_layers(self, n_features, output_layer_size):
 		self._input_layer = Layer(
 					activation = None,
-					weights =  np.random.random((n_features, hidden_layer_size)),
-					bias = np.random.random((hidden_layer_size,))
+					weights =  np.random.random((n_features, self.hidden_layer_sizes[0])),
+					bias = np.random.random((self.hidden_layer_sizes[0],))
 				)
 
 		self._output_layer = Layer(
 					activation = md.sigmoid,
-					weights = np.random.random((hidden_layer_size, output_layer_size)),
+					weights = np.random.random((self.hidden_layer_sizes[-1], output_layer_size)),
 					bias = np.random.random((output_layer_size,))
 					)
 	
@@ -139,6 +140,13 @@ class NeuralNetwork:
 				print(f"Loss = {np.sum(loss):.2f}")
 				print(f"Accuracy = {(accuracy * 100):.2f}%")
 				
+	"""Return array of sizes that are powers of 2"""
+	def _generate_hidden_layer_sizes(self, n_features, output_layer_size):
+		log_of_base = np.log(2)
+		upper_limit = np.floor(np.log(n_features) / log_of_base)
+		lower_limit = np.floor(np.log(output_layer_size) / log_of_base)
+		return (2 ** np.arange(upper_limit, lower_limit, -1)).astype(np.int64)
+		
 		
 class CNN:
 	def __init__(self,

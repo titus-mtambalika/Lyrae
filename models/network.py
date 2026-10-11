@@ -49,7 +49,6 @@ class NeuralNetwork:
 			output_layer_size = y.shape[1]
 		
 		self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
-		print(self.hidden_layer_sizes)
 		"""Declare input, output and hidden layers"""
 		# input and output
 		self._initialize_io_layers(n_features, output_layer_size)
@@ -135,39 +134,35 @@ class NeuralNetwork:
 				loss = (y_batch - a) ** 2
 				dL_da = 2 * (a - y_batch)
 				self._backprop(delta = dL_da)
-			if epoch % 20 == 0:
 				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
+				print(f"Epoch = {epoch}")
 				print(f"Loss = {np.sum(loss):.2f}")
 				print(f"Accuracy = {(accuracy * 100):.2f}%")
 				
 	"""Return array of sizes that are powers of 2"""
 	def _generate_hidden_layer_sizes(self, n_features, output_layer_size):
 		log_of_base = np.log(2)
-		upper_limit = np.floor(np.log(n_features) / log_of_base)
-		lower_limit = np.floor(np.log(output_layer_size) / log_of_base)
-		return (2 ** np.arange(upper_limit, lower_limit, -1)).astype(np.int64)
+		if n_features > output_layer_size:
+			upper_limit = np.floor(np.log(n_features) / log_of_base)
+			lower_limit = np.ceil(np.log(output_layer_size) / log_of_base)
+			return (2 ** np.arange(upper_limit, lower_limit - 1, -1)).astype(np.int64)
+		upper_limit = np.floor(np.log(output_layer_size) / log_of_base)
+		lower_limit = np.ceil(np.log(n_features) / log_of_base)
+		return (2 ** np.arange(lower_limit, upper_limit + 1)).astype(np.int64)
+	
 		
+class CNNLayer(Layer):
+	def __init__(self, k, **kwargs):
+		self.k = k
+		super().__init__(**kwargs)
 		
-class CNN:
-	def __init__(self,
-	k = None,
-	):
-		self.kernel = None 
-		self.X = np.array([]) # for for loss function 
-		self.k = k # kernel height or width 
-		self.bias = None 
-		
-	def fit(self, X, y):
-		height, width = X.shape
-		
-		if self.k is None:
-			self.k = height // 2
-			
-		self.kernel = np.random.random((self.k, self.k))
-		
-	def cross_correlation(self, X, valid = True):
-		height, width = X.shape
-		
+	def feed(self, **kwargs):
+		depth, height, width = kwargs["X"].shape
+		kwargs_2 = kwargs
+		kwargs_2["X"] = self._change_input_shape(kwargs["X"], depth, height, width)
+		super().feed(**kwargs_2)
+	
+	def _change_input_shape(self, X, depth, height, width):
 		if valid: # valid cross_correlation
 			image = X
 		else: # full cross_correlation
@@ -182,4 +177,11 @@ class CNN:
 				self.X = np.append(self.X, a)
 		self.X = self.X.reshape((-1, self.k ** 2))
 		
-		return self.X @ self.kernel.flatten()[:, np.newaxis] # + self.bias
+		return self.kernel.flatten()[:, np.newaxis]
+	
+class CNN(NeuralNetwork):
+	def __init__(self, *kwargs):
+		super().__init__(*kwargs)
+		
+	def fit(self, *kwargs):
+		pass

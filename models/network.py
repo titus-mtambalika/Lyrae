@@ -44,7 +44,6 @@ class NeuralNetwork:
 		self.learning_rate = learning_rate
 		n_samples, n_features = X.shape
 		
-		
 		if not output_layer_size:
 			output_layer_size = y.shape[1]
 		
@@ -114,6 +113,9 @@ class NeuralNetwork:
 		# update 
 		n = 1  / layer.a_1.shape[0]
 		layer.weights -= n * self.learning_rate * dL_dw
+		print(f"dz_dw = {dz_dw}")
+		print(f"da_dz = {da_dz}")
+		print(f"delta = {delta}")
 		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
 		
 		self._backprop(delta = da_da1, layer_idx = layer_idx - 1)
@@ -131,11 +133,13 @@ class NeuralNetwork:
 				X_batch = X[batch_idxs[idx]:batch_idxs[idx + 1]]
 				y_batch = y[batch_idxs[idx]:batch_idxs[idx + 1]]
 				a = self._feed_forward(X_batch)
-				loss = (y_batch - a) ** 2
-				dL_da = 2 * (a - y_batch)
+				loss = (a - y_batch) ** 2
+				dL_da = -2 * (a - y_batch)
+				print(f"a = {a}")
+				print(f"dL_da = {dL_da}")
 				self._backprop(delta = dL_da)
 				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
-				print(f"Epoch = {epoch}")
+				print(f"Epoch = {epoch} of {epochs}, Batch number {idx} of {len(batch_idxs) - 1}")
 				print(f"Loss = {np.sum(loss):.2f}")
 				print(f"Accuracy = {(accuracy * 100):.2f}%")
 				
@@ -150,7 +154,6 @@ class NeuralNetwork:
 		lower_limit = np.ceil(np.log(n_features) / log_of_base)
 		return (2 ** np.arange(lower_limit, upper_limit + 1)).astype(np.int64)
 	
-		
 class CNNLayer(Layer):
 	def __init__(self, k, **kwargs):
 		self.k = k

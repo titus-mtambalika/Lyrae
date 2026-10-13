@@ -76,23 +76,23 @@ class NeuralNetwork:
 			self._hidden_layers.append(
 				Layer(
 					activation = activation_func,
-					weights = np.random.random(self.hidden_layer_sizes[i:i + 2]),
-					bias = np.random.random((self.hidden_layer_sizes[i + 1],))
+					weights = np.random.randn(*self.hidden_layer_sizes[i:i + 2]),
+					bias = np.random.randn(self.hidden_layer_sizes[i + 1],)
 					)
 				)
 				
 	"""Initialize input and output layers"""
 	def _initialize_io_layers(self, n_features, output_layer_size):
 		self._input_layer = Layer(
-					activation = None,
-					weights =  np.random.random((n_features, self.hidden_layer_sizes[0])),
-					bias = np.random.random((self.hidden_layer_sizes[0],))
+					activation = md.relu,
+					weights =  np.random.randn(n_features, self.hidden_layer_sizes[0]),
+					bias = np.random.randn(self.hidden_layer_sizes[0],)
 				)
 
 		self._output_layer = Layer(
-					activation = md.sigmoid,
-					weights = np.random.random((self.hidden_layer_sizes[-1], output_layer_size)),
-					bias = np.random.random((output_layer_size,))
+					activation = md.relu,
+					weights = np.random.randn(self.hidden_layer_sizes[-1], output_layer_size),
+					bias = np.random.randn(output_layer_size,)
 					)
 	
 	def _backprop(self, delta, layer_idx = None):

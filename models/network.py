@@ -139,7 +139,7 @@ class NeuralNetwork:
 				y_batch = y[batch_idxs[idx]:batch_idxs[idx + 1]]
 				a = self._feed_forward(X_batch)
 				loss = (a - y_batch) ** 2
-				dL_da = -2 * (a - y_batch)
+				dL_da = 2 * (a - y_batch)
 				self._backprop(delta = dL_da)
 				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
 				print(f"Epoch = {epoch} of {epochs}, Batch number {idx} of {len(batch_idxs) - 1}")

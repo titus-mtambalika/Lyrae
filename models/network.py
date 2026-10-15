@@ -48,7 +48,7 @@ class NeuralNetwork:
 			output_layer_size = y.shape[1]
 		
 		self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
-		"""Declare input, output and hidden layers"""
+		"""Call initization of input, output and hidden layers"""
 		# input and output
 		self._initialize_io_layers(n_features, output_layer_size)
 		# hidden layers
@@ -73,11 +73,19 @@ class NeuralNetwork:
 	"""Initialize hidden layers"""
 	def _initialize_hidden_layers(self, activation_func = md.sigmoid):
 		for i in range(len(self.hidden_layer_sizes) - 1):
+			n_in, n_out = self.hidden_layer_sizes[i:i + 2]
+			# He initialization 
+			match activation_func:
+				case md.relu:
+					init_scalar = (n_in / 2) ** -0.5
+				case _:
+					init_scalar = n_in ** -0.5
+					
 			self._hidden_layers.append(
 				Layer(
 					activation = activation_func,
-					weights = np.random.randn(*self.hidden_layer_sizes[i:i + 2]),
-					bias = np.random.randn(self.hidden_layer_sizes[i + 1],)
+					weights = np.random.randn(n_in, n_out) * init_scalar,
+					bias = np.zeros((n_out,))
 					)
 				)
 				
@@ -86,13 +94,13 @@ class NeuralNetwork:
 		self._input_layer = Layer(
 					activation = md.relu,
 					weights =  np.random.randn(n_features, self.hidden_layer_sizes[0]),
-					bias = np.random.randn(self.hidden_layer_sizes[0],)
+					bias = np.zeros((self.hidden_layer_sizes[0],))
 				)
 
 		self._output_layer = Layer(
 					activation = md.relu,
 					weights = np.random.randn(self.hidden_layer_sizes[-1], output_layer_size),
-					bias = np.random.randn(output_layer_size,)
+					bias = np.zeros((output_layer_size,))
 					)
 	
 	def _backprop(self, delta, layer_idx = None):
@@ -106,7 +114,7 @@ class NeuralNetwork:
 		da_dz = layer.activation(layer.z, deriv = True) if layer.activation else 1
 		dz_dw = layer.a_1.T
 		
-		local_delta = da_dz * delta
+		local_delta = np.clip(da_dz * delta, -1000, 1000)
 		
 		dL_dw = dz_dw @ local_delta
 		da_da1 = local_delta @ layer.weights.T
@@ -132,8 +140,6 @@ class NeuralNetwork:
 				a = self._feed_forward(X_batch)
 				loss = (a - y_batch) ** 2
 				dL_da = -2 * (a - y_batch)
-				print(f"a = {a}")
-				print(f"dL_da = {dL_da}")
 				self._backprop(delta = dL_da)
 				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
 				print(f"Epoch = {epoch} of {epochs}, Batch number {idx} of {len(batch_idxs) - 1}")

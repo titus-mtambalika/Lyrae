@@ -113,9 +113,6 @@ class NeuralNetwork:
 		# update 
 		n = 1  / layer.a_1.shape[0]
 		layer.weights -= n * self.learning_rate * dL_dw
-		print(f"dz_dw = {dz_dw}")
-		print(f"da_dz = {da_dz}")
-		print(f"delta = {delta}")
 		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
 		
 		self._backprop(delta = da_da1, layer_idx = layer_idx - 1)

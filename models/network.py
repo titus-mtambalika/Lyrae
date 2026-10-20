@@ -92,13 +92,13 @@ class NeuralNetwork:
 	"""Initialize input and output layers"""
 	def _initialize_io_layers(self, n_features, output_layer_size):
 		self._input_layer = Layer(
-					activation = md.relu,
+					activation = md.sigmoid,
 					weights =  np.random.randn(n_features, self.hidden_layer_sizes[0]),
 					bias = np.zeros((self.hidden_layer_sizes[0],))
 				)
 
 		self._output_layer = Layer(
-					activation = md.relu,
+					activation = md.sigmoid,
 					weights = np.random.randn(self.hidden_layer_sizes[-1], output_layer_size),
 					bias = np.zeros((output_layer_size,))
 					)
@@ -123,7 +123,7 @@ class NeuralNetwork:
 		layer.weights -= n * self.learning_rate * dL_dw
 		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
 		
-		self._backprop(delta = da_da1, layer_idx = layer_idx - 1)
+		self._backprop(delta = np.clip(da_da1, -1000, 1000), layer_idx = layer_idx - 1)
 		
 	def predict(self, X):
 		return np.round(self._feed_forward(X))

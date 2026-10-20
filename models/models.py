@@ -41,7 +41,10 @@ def relu(s, deriv = False):
 
 def softmax(y, deriv = False):
 	y_1 = np.exp(y)
-	return y_1 / np.sum(y_1, axis = 0)
+	if not deriv:
+		return y_1 / np.sum(y_1, axis = 0)
+	s = softmax(y, deriv = False)
+	return s * (1 -s)
 	
 
 class Lin_reg:

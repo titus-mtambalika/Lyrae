@@ -1,2 +1,2 @@
-Python 3.13.13
-Numpy 2.4.4
+python>=3.13.13
+numpy>=2.4.4

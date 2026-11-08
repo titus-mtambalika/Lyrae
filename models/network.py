@@ -115,14 +115,12 @@ class NeuralNetwork:
 		dz_dw = layer.a_1.T
 		
 		local_delta = np.clip(da_dz * delta, -1000, 1000)
-		
 		dL_dw = dz_dw @ local_delta
 		da_da1 = local_delta @ layer.weights.T
 		# update 
 		n = 1  / layer.a_1.shape[0]
 		layer.weights -= n * self.learning_rate * dL_dw
 		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
-		
 		self._backprop(delta = np.clip(da_da1, -1000, 1000), layer_idx = layer_idx - 1)
 		
 	def predict(self, X):
@@ -131,7 +129,6 @@ class NeuralNetwork:
 	def _mini_batch(self, X, y, epochs, batch_size = 128):
 		n_samples, _ = X.shape
 		batch_idxs = [*range(0, n_samples, batch_size), n_samples]
-		
 		
 		for epoch in range(epochs):
 			for idx in range(len(batch_idxs) - 1):

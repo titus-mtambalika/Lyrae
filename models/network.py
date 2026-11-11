@@ -156,6 +156,7 @@ class NeuralNetwork:
 	
 class ConvolutionalLayer():
 	def __init__(
+		self,
 		kernel = None,
 		bias = None,
 	):
@@ -163,7 +164,7 @@ class ConvolutionalLayer():
 		self.bias = bias
 		
 
-	def feed(X, y, padding = False):
+	def feed(self, X, y, padding = False):
 		height, width, depth = X.shape
 		tensor = X
 		if padding:
@@ -177,10 +178,10 @@ class ConvolutionalLayer():
 		return result.reshape((result.shape[0]*result.shape[1], depth)).T
 		
 class CNN(NeuralNetwork):
-	def __init__(self, *kwargs):
-		super().__init__(*kwargs)
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
 		
-	def fit(self, *kwargs):
+	def fit(self, **kwargs):
 		self.k_h, self.k_w = self.kernel.shape
 		kwargs["X"] = self.con_layer.convolve(kwargs["X"])
 		super.fit(kwargs)

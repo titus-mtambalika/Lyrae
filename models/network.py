@@ -154,37 +154,33 @@ class NeuralNetwork:
 		lower_limit = np.ceil(np.log(n_features) / log_of_base)
 		return (2 ** np.arange(lower_limit, upper_limit + 1)).astype(np.int64)
 	
-class CNNLayer(Layer):
-	def __init__(self, k, **kwargs):
-		self.k = k
-		super().__init__(**kwargs)
+class ConvolutionalLayer():
+	def __init__(
+		kernel = None,
+		bias = None,
+	):
+		self.kernel = kernel
+		self.bias = bias
 		
-	def feed(self, **kwargs):
-		depth, height, width = kwargs["X"].shape
-		kwargs_2 = kwargs
-		kwargs_2["X"] = self._change_input_shape(kwargs["X"], depth, height, width)
-		super().feed(**kwargs_2)
-	
-	def _change_input_shape(self, X, depth, height, width):
-		if valid: # valid cross_correlation
-			image = X
-		else: # full cross_correlation
-			image = np.zeros((height + 2 * self.k - 2, width + 2 * self.k - 2))
-			image[self.k - 1: self.k - 1 + height, self.k - 1:self.k -1 + width] = X
-			height, width = image.shape
-			
+
+	def feed(X, y, padding = False):
+		height, width, depth = X.shape
+		tensor = X
+		if padding:
+			tensor = np.zeros((height + self.k_h - 1, width + self.k_w - 1, depth))
+			tensor[height - self.k_h, width - kernel.shape[1], :] = X
+		height, width, depth = tensor.shape
+		result = np.zeros((height - self.k_h + 1, width - self.k_w + 1, depth))
+		for row in range(result.shape[0]):
+			for column in range(result.shape[1]):
+				result[row, column] = np.sum(self.kernel * tensor[row: row + self.k_h, col: col + self.k_w])
+		return result.reshape((result.shape[0]*result.shape[1], depth)).T
 		
-		for i in range(height - self.k + 1):
-			for j in range(width - self.k + 1):
-				a = image[i:i + self.k, j:j + self.k].flatten()
-				self.X = np.append(self.X, a)
-		self.X = self.X.reshape((-1, self.k ** 2))
-		
-		return self.kernel.flatten()[:, np.newaxis]
-	
 class CNN(NeuralNetwork):
 	def __init__(self, *kwargs):
 		super().__init__(*kwargs)
 		
 	def fit(self, *kwargs):
-		pass
+		self.k_h, self.k_w = self.kernel.shape
+		kwargs["X"] = self.con_layer.convolve(kwargs["X"])
+		super.fit(kwargs)

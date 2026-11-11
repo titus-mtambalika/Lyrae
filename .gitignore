@@ -1,0 +1,22 @@
+
+# Folders
+images/
+datasets/
+*cache*
+other/
+
+# images
+*.jpg
+*.jpeg
+*.png
+*.img
+*.gif
+
+# specicfic files
+main.py
+.ipynb_checkpoints/
+# for now 
+
+#Media
+*.mp4
+*.mp3

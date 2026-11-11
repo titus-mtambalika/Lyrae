@@ -165,7 +165,7 @@ class ConvolutionalLayer():
 		self.bias = bias
 		
 	"""Return reshaped convolution or cross correlation"""
-	def feed(self, X, y, padding = False):
+	def feed(self, X, padding = False):
 		height, width, depth = X.shape
 		tensor = X
 		if padding:
@@ -175,7 +175,7 @@ class ConvolutionalLayer():
 		result = np.zeros((height - self.k_h + 1, width - self.k_w + 1, depth))
 		for row in range(result.shape[0]):
 			for column in range(result.shape[1]):
-				result[row, column] = np.sum(self.kernel * tensor[row: row + self.k_h, col: col + self.k_w])
+				result[row, column] = np.sum(self.kernel * tensor[row: row + self.k_h, column: column + self.k_w])
 		return (self.bias + result).reshape((result.shape[0]*result.shape[1], depth)).T
 		
 class CNN(NeuralNetwork):
@@ -183,8 +183,10 @@ class CNN(NeuralNetwork):
 		super().__init__(**kwargs)
 		self.con_layer = ConvolutionalLayer()
 		
-	def fit(X, 
-	y,  
+	def fit(self,
+	X, 
+	y,
+	kernel_dim = None,
 	output_layer_size = None,
 	learning_rate = 0.001,
 	epochs = 3000,
@@ -192,7 +194,7 @@ class CNN(NeuralNetwork):
 		
 		self.learning_rate = learning_rate
 		
-		self.result_shape = self._initialize_con_layer(kernel_dim, kwargs["X"].shape)
+		self.result_shape = self._initialize_con_layer(kernel_dim, X.shape)
 		n_samples, n_features = self.result_shape
 		
 		if not output_layer_size:
@@ -217,12 +219,12 @@ class CNN(NeuralNetwork):
 		height, width, depth = X_shape
 		if kernel_dim is None:
 			kernel_dim = tuple([min([height, width]) // 5] * 2)
-		result_shape = (height - kernel_dim[0] + 1, width - kernel_dim[1] + 1, depth)
+		result_shape = ((height - kernel_dim[0] + 1) * (width - kernel_dim[1] + 1), depth)
 		self.con_layer.kernel = np.random.randn(*kernel_dim)
 		self.con_layer.bias = np.zeros(result_shape)
 		self.con_layer.k_h, self.con_layer.k_w = kernel_dim
 		return result_shape
 		
-	def _feed_forward(self, X, y):
+	def _feed_forward(self, X):
 		X_2 = self.con_layer.feed(X)
-		super()._feed_forward(X_2, y)
+		super()._feed_forward(X_2)

@@ -170,13 +170,13 @@ class ConvolutionalLayer():
 		tensor = X
 		if padding:
 			tensor = np.zeros((depth, height + self.k_h - 1, width + self.k_w - 1))
-			tensor[:, height - self.k_h, width - kernel.shape[1],] = X
+			tensor[:, height - self.k_h, width - self.k_w,] = X
 		depth, height, width = tensor.shape
 		result = np.zeros((depth, height - self.k_h + 1, width - self.k_w + 1))
 		for row in range(result.shape[0]):
 			for column in range(result.shape[1]):
-				result[row, column] = np.sum(self.kernel * tensor[row: row + self.k_h, column: column + self.k_w])
-		return (self.bias + result).reshape((result.shape[0]*result.shape[1], depth)).T
+				result[:, row, column] = np.sum(self.kernel * tensor[:, row: row + self.k_h, column: column + self.k_w], axis = (1, 2))
+		return (self.bias + result).reshape((depth, result.shape[1]*result.shape[2]))
 		
 class CNN(NeuralNetwork):
 	def __init__(self, **kwargs):
@@ -216,7 +216,7 @@ class CNN(NeuralNetwork):
 		
 
 	def _initialize_con_layer(self, kernel_dim, X_shape):
-		depth, width, height X_shape
+		depth, width, height = X_shape
 		if kernel_dim is None:
 			kernel_dim = tuple([min([height, width]) // 5] * 2)
 		result_shape = (depth, (height - kernel_dim[0] + 1) * (width - kernel_dim[1] + 1))

@@ -42,6 +42,7 @@ class NeuralNetwork:
 	batch_size = None):
 		
 		self.learning_rate = learning_rate
+		
 		n_samples, n_features = X.shape
 		
 		if not output_layer_size:
@@ -175,27 +176,53 @@ class ConvolutionalLayer():
 		for row in range(result.shape[0]):
 			for column in range(result.shape[1]):
 				result[row, column] = np.sum(self.kernel * tensor[row: row + self.k_h, col: col + self.k_w])
-		return result.reshape((result.shape[0]*result.shape[1], depth)).T
+		return (self.bias + result).reshape((result.shape[0]*result.shape[1], depth)).T
 		
 class CNN(NeuralNetwork):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 		self.con_layer = ConvolutionalLayer()
 		
-	def fit(self, kernel_dim = None, **kwargs):
+	def fit(X, 
+	y,  
+	output_layer_size = None,
+	learning_rate = 0.001,
+	epochs = 3000,
+	batch_size = None):
+		
+		self.learning_rate = learning_rate
+		
 		self.result_shape = self._initialize_con_layer(kernel_dim, kwargs["X"].shape)
+		n_samples, n_features = self.result_shape
+		
+		if not output_layer_size:
+			output_layer_size = y.shape[1]
+		
+		self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
+		"""Call initization of input, output and hidden layers"""
+		# input and output
+		self._initialize_io_layers(n_features, output_layer_size)
+		# hidden layers
+		self._initialize_hidden_layers(
+			activation_func = self.activation_func,
+		)
+
+		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
+		#self._mini_batch(X, y, epochs, batch_size)
+		self._feed_forward(X)
+	
 		
 
 	def _initialize_con_layer(self, kernel_dim, X_shape):
 		height, width, depth = X_shape
 		if kernel_dim is None:
 			kernel_dim = tuple([min([height, width]) // 5] * 2)
+		result_shape = (height - kernel_dim[0] + 1, width - kernel_dim[1] + 1, depth)
 		self.con_layer.kernel = np.random.randn(*kernel_dim)
-		self.con_layer.bias = np.zeros(kernel_dim[0])
+		self.con_layer.bias = np.zeros(result_shape)
 		self.con_layer.k_h, self.con_layer.k_w = kernel_dim
-
-		return (height - kernel_dim[0] + 1, width - kernel_dim[1] + 1, depth)
-
+		return result_shape
+		
 	def _feed_forward(self, X, y):
 		X_2 = self.con_layer.feed(X)
 		super()._feed_forward(X_2, y)

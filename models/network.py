@@ -124,8 +124,8 @@ class NeuralNetwork:
 		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
 		self._backprop(delta = np.clip(da_da1, -1000, 1000), layer_idx = layer_idx - 1)
 		
-	def predict(self, X):
-		return np.round(self._feed_forward(X))
+	def predict(self, X, threshold = 0.5):
+		return (self._feed_forward(X) > threshold).astype(np.int32)
 		
 	def _mini_batch(self, X, y, epochs, batch_size = 128):
 		n_samples, _ = X.shape
@@ -227,8 +227,10 @@ class CNN(NeuralNetwork):
 		return result_shape
 		
 	def _feed_forward(self, X, layer_idx = 0):
-		X_2 = self.con_layer.feed(X)
-		super()._feed_forward(X_2, layer_idx)
+		X_2 = X
+		if not layer_idx:
+			X_2 = self.con_layer.feed(X)
+		return super()._feed_forward(X_2, layer_idx)
 
 	def _backprop(self, X, y):
 		super()._backprop(X, y)

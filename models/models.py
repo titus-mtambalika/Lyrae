@@ -1,33 +1,5 @@
 import numpy as np
 
-def track_loss(model,
-X, 
-y, 
-epochs = 5000,
-i = 50, 
-learning_rate = 0.01,
-gradient = False,
-relative = False,
-prediction_function = None):
-	if prediction_function is None:
-		prediction_function = model.predict
-	loss_report = np.array([])
-	# epochs for total iterations i for epochs per iterations
-	for _ in range(epochs // i):
-		model.fit(X, y, epochs = i, learning_rate = learning_rate)
-		loss = np.mean((y - prediction_function(X)) ** 2)
-		loss_report = np.append(loss_report, loss)
-	# to track approximate gradient of loss curve
-	if gradient:
-		loss_report = loss_report[1:] - loss_report[:-1]
-	# make initial loss 1 to compare gradient change
-	if relative:
-		loss_report = loss_report / loss_report[0]
-	return loss_report, np.linspace(0, epochs, len(loss_report))
-
-def normalize(X, axis = 0):
-	return (X - np.mean(X, axis = axis)) / np.std(X, axis = axis)
-
 def sigmoid(z, deriv = False):
 	if deriv:
 		s = sigmoid(z, deriv = False)

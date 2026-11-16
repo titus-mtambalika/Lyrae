@@ -1,23 +1,5 @@
 import numpy as np
-
-def sigmoid(z, deriv = False):
-	if deriv:
-		s = sigmoid(z, deriv = False)
-		return s * (1 - s)
-	return 1 / (1 + np.exp(-z))
-
-def relu(s, deriv = False):
-	if deriv:
-		return (s > 0).astype(np.int64)
-	return np.where(s < 0, 0, s)
-
-def softmax(y, deriv = False):
-	y_1 = np.exp(y)
-	if not deriv:
-		return y_1 / np.sum(y_1, axis = 0)
-	s = softmax(y, deriv = False)
-	return s * (1 -s)
-	
+from models import optimization as op
 
 class Lin_reg:
 	def __init__(self):
@@ -53,7 +35,7 @@ class Log_reg:
 		
 		for epoch in range(epochs):
 			z = X @ self.weights + self.bias
-			y_prediction = sigmoid(z)
+			y_prediction = op.sigmoid(z)
 			
 			# Gradients (simplified form)
 			dl_dweights = X.T @ (y_prediction - y)
@@ -66,7 +48,7 @@ class Log_reg:
 	"""Return prediction as probabilities"""
 	def predict_proba(self, X):
 		z = X @ self.weights + self.bias
-		return sigmoid(z) 
+		return op.sigmoid(z) 
 	
 	"""Return prediction as 0 or 1"""
 	def predict(self, X, threshold=0.5):

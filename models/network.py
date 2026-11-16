@@ -1,4 +1,4 @@
-from models import models as md
+from models import optimization as op
 import numpy as np
 
 class Layer:
@@ -24,7 +24,7 @@ class Layer:
 
 class NeuralNetwork:
 	def __init__(self,
-	activation_func = md.sigmoid # for hidden layers
+	activation_func = op.sigmoid # for hidden layers
 	):
 		self._output_layer = None
 		self._input_layer = None 
@@ -72,12 +72,12 @@ class NeuralNetwork:
 		return self._feed_forward(layer_prediction, layer_idx = layer_idx + 1)
 	
 	"""Initialize hidden layers"""
-	def _initialize_hidden_layers(self, activation_func = md.sigmoid):
+	def _initialize_hidden_layers(self, activation_func = op.sigmoid):
 		for i in range(len(self.hidden_layer_sizes) - 1):
 			n_in, n_out = self.hidden_layer_sizes[i:i + 2]
 			# He initialization 
 			match activation_func:
-				case md.relu:
+				case op.relu:
 					init_scalar = (n_in / 2) ** -0.5
 				case _:
 					init_scalar = n_in ** -0.5
@@ -93,13 +93,13 @@ class NeuralNetwork:
 	"""Initialize input and output layers"""
 	def _initialize_io_layers(self, n_features, output_layer_size):
 		self._input_layer = Layer(
-					activation = md.sigmoid,
+					activation = op.sigmoid,
 					weights =  np.random.randn(n_features, self.hidden_layer_sizes[0]),
 					bias = np.zeros((self.hidden_layer_sizes[0],))
 				)
 
 		self._output_layer = Layer(
-					activation = md.sigmoid,
+					activation = op.sigmoid,
 					weights = np.random.randn(self.hidden_layer_sizes[-1], output_layer_size),
 					bias = np.zeros((output_layer_size,))
 					)

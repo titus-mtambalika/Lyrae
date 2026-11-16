@@ -1,6 +1,6 @@
 import numpy as np
 
-class momentum:
+class Momentum:
 	def __init__(self, beta = 0, momentum = None):
 		self.beta = beta 
 		self.momentum = momentum
@@ -18,3 +18,30 @@ class RMS:
 
 	def new_learning_rate(self, mean_squared_gradient):
 		return self.learning_rate / np.sqrt(mean_squared_gradient + self.epsilon)
+
+class Adam:
+	def __init__(self, learning_rate = 0, momentum = None):
+		self.learning_rate = learning_rate
+		self.momentum = momentum
+
+	def new_weight_update(self):
+		pass
+
+def sigmoid(z, deriv = False):
+	if deriv:
+		s = sigmoid(z, deriv = False)
+		return s * (1 - s)
+	return 1 / (1 + np.exp(-z))
+
+def relu(s, deriv = False):
+	if deriv:
+		return (s > 0).astype(np.int64)
+	return np.where(s < 0, 0, s)
+
+def softmax(y, deriv = False):
+	y_1 = np.exp(y)
+	if not deriv:
+		return y_1 / np.sum(y_1, axis = 0)
+	s = softmax(y, deriv = False)
+	return s * (1 -s)
+	

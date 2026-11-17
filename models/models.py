@@ -1,7 +1,7 @@
 import numpy as np
 from models import optimization as op
 
-class Lin_reg:
+class LinearRegression:
 	def __init__(self):
 		self.weights = None
 		self.bias = None
@@ -23,37 +23,19 @@ class Lin_reg:
 	def predict(self, X):
 		return X @ self.weights + self.bias
 
-class Log_reg:
+class LogisticRegression(LinearRegression):
 	def __init__(self):
-		self.weights = None
-		self.bias = None
+		super().__init__(self)
 		
-	def fit(self, X, y, epochs = 50000, learning_rate=0.01):
-		n_samples, n_features = X.shape
-		self.weights = np.random.random((n_features, 1))
-		self.bias = 0
-		
-		for epoch in range(epochs):
-			z = X @ self.weights + self.bias
-			y_prediction = op.sigmoid(z)
-			
-			# Gradients (simplified form)
-			dl_dweights = X.T @ (y_prediction - y)
-			dl_dbias = np.sum(y_prediction - y)
-			
-			# Update parameters
-			self.weights -= learning_rate * dl_dweights
-			self.bias -= learning_rate * dl_dbias
-	
-	"""Return prediction as probabilities"""
+	def fit(self, X, y, epochs = 3000, learning_rate = 0.01):
+		y_s = op.asigmoid(y)
+		super().fit(X = X, y = y_s, epochs = epochs, learning_rate = learning_rate)
+
 	def predict_proba(self, X):
-		z = X @ self.weights + self.bias
-		return op.sigmoid(z) 
-	
-	"""Return prediction as 0 or 1"""
-	def predict(self, X, threshold=0.5):
-		proba = self.predict_proba(X)
-		return (proba >= threshold).astype(int)
+		return op.sigmoid(X @ self.weights + self.bias)
+
+	def predict(self, X, threshold = 0.5):
+		return (self.predict_proba(X) >= threshold).astype(np.int32)
 
 class KNN:
 	def __init__(self, X, y):

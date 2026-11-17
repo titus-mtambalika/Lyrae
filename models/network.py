@@ -166,7 +166,6 @@ class ConvolutionalLayer():
 		
 	"""Return reshaped convolution or cross correlation"""
 	def feed(self, X, padding = False):
-		print(X.shape)
 		samples, height, width = X.shape
 		tensor = X
 		if padding:

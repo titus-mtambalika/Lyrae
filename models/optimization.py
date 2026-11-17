@@ -17,21 +17,34 @@ class RMS:
 		self.learning_rate = learning_rate
 
 	def new_learning_rate(self, mean_squared_gradient):
-		return self.learning_rate / np.sqrt(mean_squared_gradient + self.epsilon)
+		return self.learning_rate / (np.sqrt(mean_squared_gradient) + self.epsilon)
 
 class Adam:
 	def __init__(self, learning_rate = 0, momentum = None):
 		self.learning_rate = learning_rate
+		self.moment_1 = 0
+		self.moment_2 = 0
+		self.beta_1 = 0.9
+		self.beta_2 = 0.999
 		self.momentum = momentum
-
-	def new_weight_update(self):
-		pass
+		self.epsilon = 1e-7
+		
+	def new_weight_update(self, gradient):
+		if not self.moment_1:
+			self.moment_1 = np.mean(gradient)
+			self.moment_2 = np.var(gradient)
+			
+		self.moment_1 = self.beta_1 * self.moment_1 + (1 - self.beta_2) * gradient
+		self.moment_2 = self.beta_2 * self.moment_2 + (1 - self.beta_2) * gradient ** 2
 
 def sigmoid(z, deriv = False):
 	if deriv:
 		s = sigmoid(z, deriv = False)
 		return s * (1 - s)
 	return 1 / (1 + np.exp(-z))
+	
+def asigmoid(z):
+	return - np.log(1 / z - 1)
 
 def relu(s, deriv = False):
 	if deriv:

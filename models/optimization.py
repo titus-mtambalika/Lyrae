@@ -44,11 +44,13 @@ def sigmoid(z, deriv = False):
 	return 1 / (1 + np.exp(-z))
 	
 def asigmoid(z):
-	return - np.log(1 / z - 1)
+	#handle edgecases
+	z_2 = np.select([z == 0, z == 1], [0.001, 0.999], default = z)
+	return - np.log(1 / z_2 - 1)
 
 def relu(s, deriv = False):
 	if deriv:
-		return (s > 0).astype(np.int64)
+		return (s > 0).astype(np.int32)
 	return np.where(s < 0, 0, s)
 
 def softmax(y, deriv = False):

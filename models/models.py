@@ -25,7 +25,7 @@ class LinearRegression:
 
 class LogisticRegression(LinearRegression):
 	def __init__(self):
-		super().__init__(self)
+		super().__init__()
 		
 	def fit(self, X, y, epochs = 3000, learning_rate = 0.01):
 		y_s = op.asigmoid(y)

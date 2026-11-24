@@ -96,7 +96,7 @@ class GaussianNB:
 		# Shape: (m,)
 		log_density = -0.5 * self._d * np.log(2 * np.pi) - \
 					 0.5 * np.sum(self._log_variances[c]) - \
-					 0.5 * np.sum((X - self.means[c])**2 / self.variances[c], axis=0)
+					 0.5 * np.sum((X - self.means[c])**2 / self.variances[c], axis=1)
 		return self._log_priors[c] + log_density
 	
 	def predict_proba(self, X):

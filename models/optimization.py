@@ -1,15 +1,16 @@
 import numpy as np
 
 class Momentum:
-	def __init__(self, beta = 0, momentum = None):
+	def __init__(self, beta = 0.9, velocity = None):
 		self.beta = beta 
-		self.momentum = momentum
+		self.velocity = velocity
 
-	def new_momentum(self, gradient):
-		if momentum is None:
-			self.momentum = np.mean(gradient)
-		self.momentum = beta * self.momentum + (1 - beta) * gradient
-		return self.momentum
+	def new_velocity(self, gradient):
+		if self.velocity is None:
+			self.velocity = gradient
+			return self.velocity
+		self.velocity = self.beta * np.mean(self.velocity) + (1 - self.beta) * gradient
+		return self.velocity
 
 class RMS:
 	def __init__(self, learning_rate = 0, epsilon = 1e-7):
@@ -34,7 +35,7 @@ class Adam:
 			self.moment_1 = np.mean(gradient)
 			self.moment_2 = np.var(gradient)
 			
-		self.moment_1 = self.beta_1 * self.moment_1 + (1 - self.beta_2) * gradient
+		self.moment_1 = self.beta_1 * self.moment_1 + (1 - self.beta_1) * gradient
 		self.moment_2 = self.beta_2 * self.moment_2 + (1 - self.beta_2) * gradient ** 2
 
 def sigmoid(z, deriv = False):
@@ -56,7 +57,12 @@ def relu(s, deriv = False):
 def softmax(y, deriv = False):
 	y_1 = np.exp(y)
 	if not deriv:
-		return y_1 / np.sum(y_1, axis = 0)
+		return y_1 / np.sum(y_1, axis = 1)
 	s = softmax(y, deriv = False)
 	return s * (1 -s)
-	
+
+def variance_mean_initilization(weights, X, y):
+	weights_2 = (weights - np.mean(weights)) / np.std(weights)
+	y_mean, y_std = np.mean(y), np.std(y)
+
+	return weights_2 

@@ -39,7 +39,7 @@ class NeuralNetwork:
 	output_layer_size = None,
 	learning_rate = 0.001,
 	epochs = 3000,
-	batch_size = None):
+	batch_size = 128):
 		
 		self.learning_rate = learning_rate
 		
@@ -170,7 +170,7 @@ class ConvolutionalLayer():
 		tensor = X
 		if padding:
 			tensor = np.zeros((samples, height + self.k_h - 1, width + self.k_w - 1))
-			tensor[:, height - self.k_h, width - self.k_w,] = X
+			tensor[:, :height - self.k_h, :width - self.k_w] = X
 		samples, height, width = tensor.shape
 		result = np.zeros((samples, height - self.k_h + 1, width - self.k_w + 1))
 		for row in range(result.shape[1]):
@@ -216,7 +216,7 @@ class CNN(NeuralNetwork):
 		
 
 	def _initialize_con_layer(self, kernel_dim, X_shape):
-		samples, width, height = X_shape
+		samples, height, width = X_shape
 		if kernel_dim is None:
 			kernel_dim = tuple([min([height, width]) // 5] * 2)
 		result_shape = (samples, (height - kernel_dim[0] + 1) * (width - kernel_dim[1] + 1))

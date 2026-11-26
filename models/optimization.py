@@ -12,7 +12,7 @@ class Momentum:
 		self.velocity = self.beta * np.mean(self.velocity) + (1 - self.beta) * gradient
 		return self.velocity
 
-class RMS:
+class RMSprop:
 	def __init__(self, learning_rate = 0, epsilon = 1e-7):
 		self.epsilon = epsilon
 		self.learning_rate = learning_rate
@@ -61,8 +61,10 @@ def softmax(y, deriv = False):
 	s = softmax(y, deriv = False)
 	return s * (1 -s)
 
-def variance_mean_initilization(weights, X, y):
-	weights_2 = (weights - np.mean(weights)) / np.std(weights)
-	y_mean, y_std = np.mean(y), np.std(y)
 
-	return weights_2 
+def he_initialization(n_in, weights, activation_func):
+	if activation_func is relu:
+		init_scalar = (n_in / 2) ** -0.5
+	else:
+		init_scalar = n_in ** -0.5
+	return weights * init_scalar

@@ -3,10 +3,10 @@ import numpy as np
 
 class Layer:
 	def __init__(self, 
-	activation = None,
+	activation_func = None,
 	weights = None,
 	bias = None):
-		self.activation = activation
+		self.activation_func = activation_func
 		self.bias = bias
 		self.weights = weights
 		"""Cache for backprop"""
@@ -16,10 +16,10 @@ class Layer:
 	def feed(self, a_1):
 		self.a_1 = a_1 # for backprop
 		self.z = a_1 @ self.weights + self.bias
-		if not self.activation:
+		if not self.activation_func:
 			self.a = self.z
 			return self.z
-		self.a = self.activation(self.z)
+		self.a = self.activation_func(self.z)
 		return self.a
 
 class NeuralNetwork:
@@ -75,17 +75,11 @@ class NeuralNetwork:
 	def _initialize_hidden_layers(self, activation_func = op.sigmoid):
 		for i in range(len(self.hidden_layer_sizes) - 1):
 			n_in, n_out = self.hidden_layer_sizes[i:i + 2]
-			# He initialization 
-			match activation_func:
-				case op.relu:
-					init_scalar = (n_in / 2) ** -0.5
-				case _:
-					init_scalar = n_in ** -0.5
-					
+			
 			self._hidden_layers.append(
 				Layer(
-					activation = activation_func,
-					weights = np.random.randn(n_in, n_out) * init_scalar,
+					activation_func = activation_func,
+					weights = op.he_initialization(n_in = n_in, weights = np.random.randn(n_in, n_out), activation_func = activation_func),
 					bias = np.zeros((n_out,))
 					)
 				)
@@ -93,16 +87,19 @@ class NeuralNetwork:
 	"""Initialize input and output layers"""
 	def _initialize_io_layers(self, n_features, output_layer_size):
 		self._input_layer = Layer(
-					activation = op.sigmoid,
+					activation_func = op.sigmoid,
 					weights =  np.random.randn(n_features, self.hidden_layer_sizes[0]),
 					bias = np.zeros((self.hidden_layer_sizes[0],))
 				)
 
 		self._output_layer = Layer(
-					activation = op.sigmoid,
+					activation_func = op.sigmoid,
 					weights = np.random.randn(self.hidden_layer_sizes[-1], output_layer_size),
 					bias = np.zeros((output_layer_size,))
 					)
+
+		for layer in [self._input_layer, self._output_layer]:
+			layer.weights = op.he_initialization(n_in = layer.weights.shape[0], weights = layer.weights, activation_func = layer.activation_func)
 	
 	def _backprop(self, delta, layer_idx = None):
 		layer_idx = len(self.layers) - 1 if (layer_idx is None) else layer_idx
@@ -112,7 +109,7 @@ class NeuralNetwork:
 		layer = self.layers[layer_idx]
 		
 		#gradients
-		da_dz = layer.activation(layer.z, deriv = True) if layer.activation else 1
+		da_dz = layer.activation_func(layer.z, deriv = True) if layer.activation_func else 1
 		dz_dw = layer.a_1.T
 		
 		local_delta = np.clip(da_dz * delta, -1000, 1000)

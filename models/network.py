@@ -31,7 +31,7 @@ class NeuralNetwork:
 		self._hidden_layers = []
 		self.learning_rate = None
 		self.activation_func = activation_func
-		self.hidden_layer_sizes = np.array([])
+		self.hidden_layer_sizes = None
 		
 	def fit(self, 
 	X, 

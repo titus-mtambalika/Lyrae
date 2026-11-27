@@ -1,15 +1,15 @@
 import numpy as np
 
 class Momentum:
-	def __init__(self, beta = 0.9, velocity = None):
+	def __init__(self, learning_rate = 0.01, beta = 0.9, velocity = None):
 		self.beta = beta 
 		self.velocity = velocity
 
 	def new_velocity(self, gradient):
 		if self.velocity is None:
-			self.velocity = gradient
+			self.velocity = np.zeros(gradient.shape)
 			return self.velocity
-		self.velocity = self.beta * np.mean(self.velocity) + (1 - self.beta) * gradient
+		self.velocity = self.beta * self.velocity + (1 - self.beta) * gradient
 		return self.velocity
 
 class RMSprop:

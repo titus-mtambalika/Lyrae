@@ -47,8 +47,9 @@ class NeuralNetwork:
 		
 		if not output_layer_size:
 			output_layer_size = y.shape[1]
-		
-		self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
+
+		if not self.hidden_layer_sizes:
+			self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
 		"""Call initization of input, output and hidden layers"""
 		# input and output
 		self._initialize_io_layers(n_features, output_layer_size)
@@ -136,10 +137,8 @@ class NeuralNetwork:
 				loss = (a - y_batch) ** 2
 				dL_da = 2 * (a - y_batch)
 				self._backprop(delta = dL_da)
-				accuracy = np.sum(self.predict(X) == y) / (y.shape[0] * y.shape[1])
-				print(f"Epoch = {epoch} of {epochs}, Batch number {idx} of {len(batch_idxs) - 1}")
-				print(f"Loss = {np.sum(loss):.2f}")
-				print(f"Accuracy = {(accuracy * 100):.2f}%")
+			print(f"Epoch = {epoch} of {epochs}")
+			print(f"Loss = {np.sum(loss):.2f}")
 				
 	"""Return array of sizes that are powers of 2"""
 	def _generate_hidden_layer_sizes(self, n_features, output_layer_size):
@@ -207,8 +206,7 @@ class CNN(NeuralNetwork):
 		)
 
 		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
-		#self._mini_batch(X, y, epochs, batch_size)
-		self._feed_forward(X)
+		self._mini_batch(X, y, epochs, batch_size)
 	
 		
 

@@ -45,10 +45,10 @@ class NeuralNetwork:
 		
 		n_samples, n_features = X.shape
 		
-		if not output_layer_size:
+		if output_layer_size is None:
 			output_layer_size = y.shape[1]
 
-		if not self.hidden_layer_sizes:
+		if self.hidden_layer_sizes is None:
 			self.hidden_layer_sizes = self._generate_hidden_layer_sizes(n_features, output_layer_size)
 		"""Call initization of input, output and hidden layers"""
 		# input and output
@@ -61,17 +61,14 @@ class NeuralNetwork:
 		self.layers = [self._input_layer, *self._hidden_layers, self._output_layer]
 		self._mini_batch(X, y, epochs, batch_size)
 		
-	"Recursively feed forward"
+	"Iteratively feed forward"
 	def _feed_forward(self, X, layer_idx = 0):
-		layer = self.layers[layer_idx]
-		layer_prediction = layer.feed(X)
+		result = X
+		for layer in self.layers:
+			result = layer.feed(result)
+
+		return result
 		
-		#base case
-		if layer_idx > (len(self.layers) - 2):
-			return layer_prediction
-			
-		return self._feed_forward(layer_prediction, layer_idx = layer_idx + 1)
-	
 	"""Initialize hidden layers"""
 	def _initialize_hidden_layers(self, activation_func = op.sigmoid):
 		for i in range(len(self.hidden_layer_sizes) - 1):
@@ -102,25 +99,20 @@ class NeuralNetwork:
 		for layer in [self._input_layer, self._output_layer]:
 			layer.weights = op.he_initialization(n_in = layer.weights.shape[0], weights = layer.weights, activation_func = layer.activation_func)
 	
-	def _backprop(self, delta, layer_idx = None):
-		layer_idx = len(self.layers) - 1 if (layer_idx is None) else layer_idx
-		# base case 
-		if layer_idx < 0:
-			return
-		layer = self.layers[layer_idx]
-		
-		#gradients
-		da_dz = layer.activation_func(layer.z, deriv = True) if layer.activation_func else 1
-		dz_dw = layer.a_1.T
-		
-		local_delta = np.clip(da_dz * delta, -1000, 1000)
-		dL_dw = dz_dw @ local_delta
-		da_da1 = local_delta @ layer.weights.T
-		# update 
-		n = 1  / layer.a_1.shape[0]
-		layer.weights -= n * self.learning_rate * dL_dw
-		layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
-		self._backprop(delta = np.clip(da_da1, -1000, 1000), layer_idx = layer_idx - 1)
+	def _backprop(self, delta):
+		for layer in self.layers[::-1]:
+			#gradients
+			da_dz = layer.activation_func(layer.z, deriv = True) if layer.activation_func else 1
+			dz_dw = layer.a_1.T
+			
+			local_delta = np.clip(da_dz * delta, -1000, 1000)
+			dL_dw = dz_dw @ local_delta
+			da_da1 = local_delta @ layer.weights.T
+			# update 
+			n = 1  / layer.a_1.shape[0]
+			layer.weights -= n * self.learning_rate * dL_dw
+			layer.bias -= n * self.learning_rate * np.sum(local_delta, axis = 0)
+			delta = np.clip(da_da1, -1000, 1000)
 		
 	def predict(self, X, threshold = 0.5):
 		return (self._feed_forward(X) > threshold).astype(np.int32)
